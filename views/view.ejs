@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<title>Doodle Share View</title>
+<script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<script src="/socket.io/socket.io.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+.mycanvas{
+  border: 1px solid #333;
+}
+</style>
+</head>
+<body>
+<h2></h2>
+
+<div class="card-columns" id="cards">
+</div>
+
+<script>
+var socketio = null;
+var socket_ids = [];
+
+var base_url = location.origin + '/';
+
+$(function(){
+  socketio = io.connect();
+  
+  init();
+
+  socketio.on( 'init_client_view', function( msg ){
+    var socket_id = msg.socket_id;
+    if( socket_ids.indexOf( socket_id ) > -1 ){
+    }else{
+      socket_ids.push( socket_id );
+      //$('#debug_ul').append( '<li id="socket_' + socket_id + '">' + socket_id + '</li>' );
+      console.log( socket_ids );
+
+      var card = '<div class="card">'
+        + '<div class="card-body">'
+        + '<h4 class="card-title">' + msg.name + '</h4>'
+        + '</div>'
+        + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" width="' + msg.width + '" height="' + msg.height + '"/>'
+        + '</div>';
+      $('#cards').append( card );
+    }
+  }); 
+
+  socketio.on( 'image_client_view', function( msg ){
+    var socket_id = msg.socket_id;
+    if( socket_ids.indexOf( socket_id ) > -1 ){
+      $('#image_'+socket_id).prop( 'src', msg.image_src );
+    }
+  }); 
+});
+
+function init(){
+  //. リサイズ時
+  $(window).on( 'load resize', function(){
+    resized();
+  });
+}
+
+function resized(){
+  var browserWidth = window.innerWidth;
+  var browserHeight = window.innerHeight;
+
+  socketio.emit( 'init_view', { width: browserWidth, height: browserHeight } );
+}
+</script>
+</body>
+</html>

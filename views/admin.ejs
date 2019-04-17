@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8"/>
+<title>Doodle Share - Admin</title>
+<script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<link rel="stylesheet" href="//cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.css"/> 
+<script src="//cdn.datatables.net/t/bs-3.3.6/jqc-1.12.0,dt-1.10.11/datatables.min.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+
+<script>
+$(function(){
+  $.extend( $.fn.dataTable.defaults, {
+    language: {
+      url: '//cdn.datatables.net/plug-ins/9dcbecd42ad/i18n/Japanese.json'
+    }
+  });
+  $('#image_table').DataTable({
+    columnDefs: [{ 
+      targets: [ 0, 3 ], 
+      orderable: false,
+      searchable: false
+    }],
+    order: [ [ 2, 'desc' ] ]
+  });
+});
+
+function delImage( image_id ){
+  if( confirm( image_id + ' の画像を削除します。よろしいですか？' ) ){
+    $.ajax({
+      type: 'DELETE',
+      url: '/image?id=' + image_id,
+      success: function( result ){
+        location.href = '/admin';
+      },
+      error: function( err ){
+        console.log( err );
+      },
+    });
+  }
+}
+</script>
+
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+</style>
+</head>
+<body>
+
+  <table id="image_table" class="table table-bordered table-striped">
+    <thead>
+      <tr><th>#</th><th>name</th><th>timestamp</th><th>actions</th></tr>
+    </thead>
+    <tbody id="images_table_tbody">
+<% for( var i = 0; i < images.length; i ++ ){ %>
+      <tr>
+        <td><img src="/image?id=<%= images[i]._id %>"/></td>
+        <td><%= images[i].name %></td>
+        <td><%= images[i].timestamp %></td>
+        <td><input type="button" class="btn btn-danger" value="delete" onClick="delImage('<%= images[i]._id %>');"/></td>
+      </tr>
+<% } %>
+    </tbody>
+  </table>
+
+</body>
+</html>
