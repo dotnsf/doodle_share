@@ -78,6 +78,17 @@ var backgroundcolor = null;
 
 //. 参考: https://gist.github.com/Cartman0/436459b9b85cfdd1ca9c
 $(function(){
+  //. ヒストリバック無効化
+  if( window.history && window.history.pushState ){
+    history.pushState( "nohb", null, null );
+    $(window).on( "popState", function( evt ){
+      if( !event.originalEvent.state ){
+        history.pushState( "nohb", null, null );
+        return;
+      }
+    });
+  }
+
   socketio = io.connect();
 
   init();

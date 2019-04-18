@@ -20,6 +20,14 @@ html, body{
 .mycanvas{
   border: 1px solid #333;
 }
+.card-columns{
+  @include media-breakpoint-only(lg){
+    column-count: 4;
+  }
+  @include media-breakpoint-only(xl){
+    column-count: 3;
+  }
+}
 </style>
 </head>
 <body>
@@ -49,11 +57,13 @@ $(function(){
 
       var color = generateColor( msg.name );
 
-      var card = '<div class="card border-' + color + '">'
+      var card = '<div id="card_' + socket_id + '" class="card border-' + color + '">'
         + '<div class="card-body text-' + color + '">'
-        + '<h4 class="card-title">' + msg.name + '</h4>'
+        //+ '<h4 class="card-title">' + msg.name + '</h4>'
+        + '<h4 class="card-title"><a href="#" class="btn btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>' + msg.name + '</h4>'
         + '</div>'
         + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" width="' + msg.width + '" height="' + msg.height + '"/>'
+        //+ '<a href="#" class="btn btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>'
         + '</div>';
       $('#cards').append( card );
     }
@@ -91,6 +101,10 @@ function generateColor( name ){
   r = r % 8;
 
   return [ 'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark' ][r];
+}
+
+function removeCard( card_id ){
+  $('#'+card_id).css( 'display', 'none' );
 }
 </script>
 </body>
