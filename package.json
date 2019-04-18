@@ -1,6 +1,6 @@
 {
-    "name"         : "doodle_share",
-    "version"      : "0.0.1",
+    "name": "doodle_share",
+    "version": "0.0.1",
     "scripts": {
         "start": "node app.js"
     },
