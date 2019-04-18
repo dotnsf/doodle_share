@@ -69,10 +69,10 @@ app.set( 'view engine', 'ejs' );
 
 app.use( cors() );
 
-app.get( '/', function( req, res ){
+app.get( '/draw', function( req, res ){
   var name = req.query.name;
   if( !name ){ name = '' + ( new Date() ).getTime(); }
-  res.render( 'index', { name: name } );
+  res.render( 'draw', { name: name } );
 });
 
 app.get( '/view', function( req, res ){
@@ -283,4 +283,3 @@ function timestamp2datetime( ts ){
 //app.listen( appEnv.port );
 http.listen( appEnv.port );
 console.log( "server stating on " + appEnv.port + " ..." );
-
