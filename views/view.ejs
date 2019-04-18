@@ -47,8 +47,10 @@ $(function(){
       //$('#debug_ul').append( '<li id="socket_' + socket_id + '">' + socket_id + '</li>' );
       console.log( socket_ids );
 
-      var card = '<div class="card">'
-        + '<div class="card-body">'
+      var color = generateColor( msg.name );
+
+      var card = '<div class="card border-' + color + '">'
+        + '<div class="card-body text-' + color + '">'
         + '<h4 class="card-title">' + msg.name + '</h4>'
         + '</div>'
         + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" width="' + msg.width + '" height="' + msg.height + '"/>'
@@ -77,6 +79,18 @@ function resized(){
   var browserHeight = window.innerHeight;
 
   socketio.emit( 'init_view', { width: browserWidth, height: browserHeight } );
+}
+
+
+function generateColor( name ){
+  var r = 0;
+  for( var i = 0; i < name.length; i ++ ){
+    var c = name.charCodeAt( i );
+    r += c;
+  }
+  r = r % 8;
+
+  return [ 'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark' ][r];
 }
 </script>
 </body>
