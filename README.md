@@ -44,7 +44,7 @@ Social Application, which can share all participant doodles in real time.
 
 - First, administrator need to access to /view so that it can handle all client.
 
-- Then user may access to /?name=(username) with their smartphone. username can be duplicated, but we need to distinguish from them.
+- Then user may access to / with their smartphone, and input his/her name.
 
 - When user draw their doodle in their smartphone, all doodles would be shown in /view screen.
 
@@ -56,4 +56,3 @@ Social Application, which can share all participant doodles in real time.
 ## Copyright
 
 2019 [K.Kimura @ Juge.Me](https://github.com/dotnsf) all rights reserved.
-
