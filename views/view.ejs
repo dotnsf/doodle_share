@@ -21,10 +21,13 @@ html, body{
   border: 1px solid #333;
 }
 .card-columns{
+  @include media-breakpoint-only(xl){
+    column-count: 5;
+  }
   @include media-breakpoint-only(lg){
     column-count: 4;
   }
-  @include media-breakpoint-only(xl){
+  @include media-breakpoint-only(md){
     column-count: 3;
   }
 }
@@ -60,7 +63,7 @@ $(function(){
       var card = '<div id="card_' + socket_id + '" class="card border-' + color + '">'
         + '<div class="card-body text-' + color + '">'
         //+ '<h4 class="card-title">' + msg.name + '</h4>'
-        + '<h4 class="card-title"><a href="#" class="btn btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>' + msg.name + '</h4>'
+        + '<h4 class="card-title"><a href="#" class="btn btn-xs btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>' + msg.name + '</h4>'
         + '</div>'
         + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" width="' + msg.width + '" height="' + msg.height + '"/>'
         //+ '<a href="#" class="btn btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>'
@@ -93,14 +96,15 @@ function resized(){
 
 
 function generateColor( name ){
+  var arr = [ 'primary', 'secondary', 'success', 'danger', 'warning', 'info', /*'light',*/ 'dark' ];
   var r = 0;
   for( var i = 0; i < name.length; i ++ ){
     var c = name.charCodeAt( i );
     r += c;
   }
-  r = r % 8;
+  r = r % arr.length;
 
-  return [ 'primary', 'secondary', 'success', 'danger', 'warning', 'info', 'light', 'dark' ][r];
+  return arr[r];
 }
 
 function removeCard( card_id ){
