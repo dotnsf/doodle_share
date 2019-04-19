@@ -2,7 +2,6 @@
 
 var express = require( 'express' ),
     basicAuth = require( 'basic-auth-connect' ),
-    cors = require( 'cors' ),
     cfenv = require( 'cfenv' ),
     multer = require( 'multer' ),
     bodyParser = require( 'body-parser' ),
@@ -42,6 +41,7 @@ if( cloudant ){
 
 var appEnv = cfenv.getAppEnv();
 
+
 app.all( '/admin', basicAuth( function( user, pass ){
   if( settings.admin_username && settings.admin_password ){
     return ( settings.admin_username === user && settings.admin_password === pass );
@@ -66,8 +66,6 @@ app.use( express.static( __dirname + '/public' ) );
 
 app.set( 'views', __dirname + '/views' );
 app.set( 'view engine', 'ejs' );
-
-app.use( cors() );
 
 app.get( '/draw', function( req, res ){
   var name = req.query.name;
