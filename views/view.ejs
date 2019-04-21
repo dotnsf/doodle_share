@@ -58,12 +58,17 @@ html, body{
     column-count: 3;
   }
 }
+.card-group .card{
+  max-width: 20%;
+}
 </style>
 </head>
 <body>
 <h2></h2>
 
-<div class="card-columns" id="cards">
+<div id="card-groups">
+  <div class="card-group" id="cards-1">
+  </div>
 </div>
 
 <script>
@@ -71,6 +76,9 @@ var socketio = null;
 var socket_ids = [];
 
 var base_url = location.origin + '/';
+
+var row = 1;
+var cnt = 0;
 
 $(function(){
   socketio = io.connect();
@@ -87,6 +95,12 @@ $(function(){
 
       var color = generateColor( msg.name );
 
+      cnt ++;
+      if( cnt > 1 && cnt % 5 == 1 ){
+        row ++;
+        $('#card-groups').append( '<div class="card-group" id="cards-' + row + '">' );
+      }
+
       var card = '<div id="card_' + socket_id + '" class="card border-' + color + '">'
         + '<div class="card-body text-' + color + '">'
         //+ '<h4 class="card-title">' + msg.name + '</h4>'
@@ -95,7 +109,7 @@ $(function(){
         + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" width="315" height="330"/>'
         //+ '<a href="#" class="btn btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>'
         + '</div>';
-      $('#cards').append( card );
+      $('#cards-'+row).append( card );
     }
   });
 
