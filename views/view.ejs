@@ -117,6 +117,7 @@ $(function(){
     var socket_id = msg.socket_id;
     if( socket_ids.indexOf( socket_id ) > -1 ){
       $('#image_'+socket_id).prop( 'src', msg.image_src );
+      $('#image_'+socket_id).prop( 'title', msg.comment );
     }
   });
 });

@@ -6,6 +6,7 @@
 <script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+<link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
 <script src="/socket.io/socket.io.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
@@ -47,6 +48,9 @@ html, body{
 #mycanvas{
   border: 1px solid #333;
 }
+#comment{
+  width: 100%;
+}
 </style>
 </head>
 <body>
@@ -82,6 +86,7 @@ html, body{
 </select>
 
 <input type="button" class="btn btn-xs btn-secondary p-0" id="setbg_btn" value="背景色" onClick="setBG();"/>
+<a href="#" class="btn btn-xs btn-secondary p-0" data-toggle="modal" data-target="#commentModal" id="comment_btn"><i class="fas fa-comment-dots"></i></a>
 
 <div id="canvas_div">
   <div id="cdiv"></div>
@@ -91,6 +96,25 @@ html, body{
   <input type="button" class="btn btn-xs btn-warning" value="reset" onClick="resetCanvas();"/>
   <input type="button" class="btn btn-xs btn-primary" value="save" onClick="save();"/>
   <input type="button" class="btn btn-xs" id="redo_btn" value=">" onClick="redo();" disabled="disabled"/>
+</div>
+
+<div class="modal bd-example-modal-lg fade" id="commentModal" tabindex="-1" role="dialog" aria-labbelledby="commentModal" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="commentModalLabel">コメント</h4>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body" id="commentmodal-body">
+        <textarea id="comment"></textarea>
+      </div>
+      <div class="modal-footer btn-center">
+        <button type="button" class="btn modal_button" data-dismiss="modal">送信</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -116,12 +140,19 @@ $(function(){
     });
   }
 
+  //. モーダル終了時
+  $('#commentModal').on( 'hidden.bs.modal', function(){
+    sendImage();
+  });
+
+
   socketio = io.connect();
 
   init();
 });
 
 function init(){
+  $('#comment').html( '' );
   $('#cdiv').html( '<canvas width="80%" height="50%" id="mycanvas"></canvas>' );
 
   var canvas = document.getElementById( 'mycanvas' );
@@ -496,9 +527,14 @@ function sendImage(){
   //. 画像データ
   var png = canvas.toDataURL( 'image/png' );
 
+  //. コメント
+  var comment = $('#comment').val();
+  if( !comment ){ comment = ''; }
+
   //. 画像を通知
   var msg = {
     uuid: uuid,
+    comment: comment,
     image_src: png
   };
   socketio.json.emit( 'image_client', msg );
