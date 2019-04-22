@@ -77,7 +77,7 @@ app.get( '/draw', function( req, res ){
 
 app.get( '/view', function( req, res ){
   var room = req.query.room;
-  if( !room ){ room = settins.defaultroom; }
+  if( !room ){ room = settings.defaultroom; }
   res.render( 'view', { room: room } );
 });
 
@@ -121,6 +121,7 @@ app.post( '/image', function( req, res ){
   var params = {
     _id: image_id,
     filename: filename,
+    type: 'image',
     timestamp: ( new Date() ).getTime(),
     name: req.body.name,
     _attachments: {
@@ -200,7 +201,7 @@ app.get( '/images', function( req, res ){
         var images = [];
         body.rows.forEach( function( doc ){
           var _doc = JSON.parse(JSON.stringify(doc.doc));
-          if( _doc._id.indexOf( '_' ) !== 0 ){
+          if( _doc._id.indexOf( '_' ) !== 0 && _doc.type && _doc.type == 'image' ){
             images.push( _doc );
           }
         });
@@ -236,8 +237,15 @@ io.sockets.on( 'connection', function( socket ){
     //console.log( 'init_view' );
     var room = msg.room ? msg.room : settings.defaultroom;
 
+    var ts = ( new Date() ).getTime();
     if( !view_sockets[room] ){
-      view_sockets[room] = socket;
+      view_sockets[room] = { socket: socket, timestamp: ts };
+    }else{
+      if( view_sockets[room].timestamp + ( 10 * 60 * 60 * 1000 ) < ts ){ //. 10 hours
+        view_sockets[room] = { socket: socket, timestamp: ts };
+      }else{
+        console.log( 'Room: "' + room + '" is not expired yet.' );
+      }
     }
     //console.log( view_socket );
   });
@@ -252,7 +260,7 @@ io.sockets.on( 'connection', function( socket ){
     var room = msg.room ? msg.room : settings.defaultroom;
 
     if( view_sockets[room] ){
-      view_sockets[room].json.emit( 'init_client_view', msg );
+      view_sockets[room].socket.json.emit( 'init_client_view', msg );
     }
   });
 
@@ -266,7 +274,7 @@ io.sockets.on( 'connection', function( socket ){
     var room = msg.room ? msg.room : settings.defaultroom;
 
     if( view_sockets[room] ){
-      view_sockets[room].json.emit( 'image_client_view', msg );
+      view_sockets[room].socket.json.emit( 'image_client_view', msg );
     }
   });
 });
