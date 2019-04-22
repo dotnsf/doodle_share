@@ -61,10 +61,41 @@ html, body{
 .card-group .card{
   max-width: 20%;
 }
+.cp_tooltip{
+  font-size: 30px;
+  font-weight: bold;
+  display: inline-block;
+}
+.cp_tooltiptext{
+  position: relative;
+  cursor: pointer;
+  //background: linear-gradient(transparent 60%, #f19ec2 60%);
+}
+.cp_tooltiptext::after {
+  position: absolute;
+  transition: all 0.3s ease 0s;
+  opacity: 0;
+  top: 0px;/*HOVERのスタート位置*/
+  left: 0px;
+  display: block;
+  padding: 0.2em 0.5em;
+  content: attr(data-tooltip);
+  white-space: nowrap;
+  color: #ffffff;
+  border-radius: 6px;
+  background: #1b2538;
+}
+.cp_tooltiptext:hover::after {
+  top: 26px;/*HOVER位置*/
+  opacity: 1;
+}
 </style>
 </head>
 <body>
-<h2><%= room %></h2>
+<!--
+<div class="cp_tooltip"><span id="url_tooltiptext" data-tooltip="" class="cp_tooltiptext"><%= room %></span></div>
+-->
+<div class="cp_tooltip"><span id="url_tooltiptext"><%= room %></span></div>
 
 <div id="card-groups">
   <div class="card-group" id="cards-1">
@@ -84,6 +115,9 @@ $(function(){
   socketio = io.connect();
 
   init();
+
+  $('#url_tooltiptext').attr( 'data-tooltip', base_url + '?room=<%= room %>' );
+  $('#url_tooltiptext').addClass( 'cp_tooltiptext' );
 
   socketio.on( 'init_client_view', function( msg ){
     var socket_id = msg.socket_id;
