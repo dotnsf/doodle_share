@@ -37,6 +37,8 @@ Social Application, which can share all participant doodles in real time.
 
     - exports.admin_password : password for Basic Authenticate to access /view and /admin
 
+    - exports.defaultroom : defarult room name when not specified
+
 - Deploy application into IBM Cloud
 
 
@@ -44,7 +46,11 @@ Social Application, which can share all participant doodles in real time.
 
 - First, administrator need to access to /view so that it can handle all client.
 
+    - If you want to specify room name, then access to /view?room=XXXX
+
 - Then user may access to / with their smartphone, and input his/her name.
+
+    - If you want to use room name, then access to /?room=XXXX
 
 - When user draw their doodle in their smartphone, all doodles would be shown in /view screen.
 
