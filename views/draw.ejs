@@ -2,7 +2,7 @@
 <html lang="ja">
 <head>
 <meta charset="UTF-8"/>
-<title>Doodle Share</title>
+<title><%= room %></title>
 <script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
@@ -353,6 +353,7 @@ function resized(){
     var name = $('#name').text();
     var msg = {
       uuid: uuid,
+      room: '<%= room %>',
       name: name,
       width: canvas.width,
       height: canvas.height
@@ -534,6 +535,7 @@ function sendImage(){
   //. 画像を通知
   var msg = {
     uuid: uuid,
+    room: '<%= room %>',
     comment: comment,
     image_src: png
   };

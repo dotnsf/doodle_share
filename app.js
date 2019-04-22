@@ -70,11 +70,15 @@ app.set( 'view engine', 'ejs' );
 app.get( '/draw', function( req, res ){
   var name = req.query.name;
   if( !name ){ name = '' + ( new Date() ).getTime(); }
-  res.render( 'draw', { name: name } );
+  var room = req.query.room;
+  if( !room ){ room = settings.defaultroom; }
+  res.render( 'draw', { name: name, room: room } );
 });
 
 app.get( '/view', function( req, res ){
-  res.render( 'view', {} );
+  var room = req.query.room;
+  if( !room ){ room = settins.defaultroom; }
+  res.render( 'view', { room: room } );
 });
 
 app.get( '/admin', function( req, res ){
@@ -223,14 +227,18 @@ app.get( '/images', function( req, res ){
 
 
 //. socket.io
-var view_socket = null;
+var view_sockets = {};
 io.sockets.on( 'connection', function( socket ){
   //console.log( 'connected.' );
 
   //. 一覧画面の初期化時
   socket.on( 'init_view', function( msg ){
     //console.log( 'init_view' );
-    view_socket = socket;
+    var room = msg.room ? msg.room : settings.defaultroom;
+
+    if( !view_sockets[room] ){
+      view_sockets[room] = socket;
+    }
     //console.log( view_socket );
   });
 
@@ -241,8 +249,10 @@ io.sockets.on( 'connection', function( socket ){
     msg.socket_id = socket.id;
     //console.log( msg );
 
-    if( view_socket ){
-      view_socket.json.emit( 'init_client_view', msg );
+    var room = msg.room ? msg.room : settings.defaultroom;
+
+    if( view_sockets[room] ){
+      view_sockets[room].json.emit( 'init_client_view', msg );
     }
   });
 
@@ -253,8 +263,10 @@ io.sockets.on( 'connection', function( socket ){
     msg.socket_id = socket.id;
     //console.log( msg );
 
-    if( view_socket ){
-      view_socket.json.emit( 'image_client_view', msg );
+    var room = msg.room ? msg.room : settings.defaultroom;
+
+    if( view_sockets[room] ){
+      view_sockets[room].json.emit( 'image_client_view', msg );
     }
   });
 });

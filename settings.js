@@ -5,6 +5,8 @@ exports.db_name = 'doodleshare';
 exports.admin_username = 'admin';
 exports.admin_password = 'password';
 
+exports.defaultroom = 'default';
+
 exports.app_port = 0;
 
 if( process.env.VCAP_SERVICES ){

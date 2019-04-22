@@ -54,6 +54,7 @@ html, body{
 <div class="container">
 <table class="table">
 <tr>
+  <td><input type="text" class="form-control" id="room" value="" placeholder="Room" /></td>
   <td><input type="text" class="form-control" id="name" value="" placeholder="Your name .." /></td>
   <td><input type="button" class="btn btn-xs btn-primary" value="Start" onClick="startDrawing();"/></td>
 </tr>
@@ -69,14 +70,24 @@ $(function(){
       $('#name').val( unescape( str[1] ) );
     }
   }
+
+  var params = location.search.substring( 1 ).split( '&' );
+  params.forEach( function( param ){
+    var str = param.split( '=' );
+    if( str[0] == 'room' ){
+      $('#room').val( unescape( str[1] ) );
+    }
+  });
 });
 
 function startDrawing(){
+  var room = $('#room').val();
+  if( !room ){ room = ''; }
   var name = $('#name').val();
   if( name ){
     document.cookie = "name=" + name;
   }
-  location.href = '/draw?name=' + name;
+  location.href = '/draw?room=' + room + '&name=' + name;
 }
 </script>
 </body>
