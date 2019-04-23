@@ -95,7 +95,7 @@ html, body{
 <!--
 <div class="cp_tooltip"><span id="url_tooltiptext" data-tooltip="" class="cp_tooltiptext"><%= room %></span></div>
 -->
-<div class="cp_tooltip"><span id="url_tooltiptext"><%= room %></span></div>
+<div class="cp_tooltip"><span id="url_tooltiptext" onClick="copyCB();"><%= room %></span></div>
 
 <div id="card-groups">
   <div class="card-group" id="cards-1">
@@ -185,6 +185,38 @@ function generateColor( name ){
 
 function removeCard( card_id ){
   $('#'+card_id).css( 'display', 'none' );
+}
+
+function copyCB(){
+  var str = $('#url_tooltiptext').attr( 'data-tooltip' );
+  copyClipboard( str );
+}
+
+function copyClipboard( str ){
+  //. 空 div と空 pre
+  var tmp = document.createElement( 'div' );
+  var pre = document.createElement( 'pre' );
+
+  pre.style.webkitUserSelect = 'auto';
+  pre.style.userSelect = 'auto';
+  tmp.appendChild( pre ).textContent = str;
+
+  //. 画面外へ
+  var s = tmp.style;
+  s.position = 'fixed';
+  s.right = '200%';
+
+  //. body に追加
+  document.body.appendChild( tmp );
+  document.getSelection().selectAllChildren( tmp );
+
+  //. クリップボードにコピー
+  var result = document.execCommand( "copy" );
+
+  //. 要素削除
+  document.body.removeChild( tmp );
+
+  return result;
 }
 </script>
 </body>
