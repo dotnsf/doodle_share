@@ -89,13 +89,27 @@ html, body{
   top: 26px;/*HOVER位置*/
   opacity: 1;
 }
+.blink{
+  animation: 1s linear infinite blink_effect;
+}
+@keyframes blink_effect{
+  0%{
+    visibility: hidden;
+  }
+  50%{
+    visibility: hidden;
+  }
+  100%{
+    visibility: visible;
+  }
+}
 </style>
 </head>
 <body>
 <!--
 <div class="cp_tooltip"><span id="url_tooltiptext" data-tooltip="" class="cp_tooltiptext"><%= room %></span></div>
 -->
-<div class="cp_tooltip"><span id="url_tooltiptext" onClick="copyCB();"><%= room %></span></div>
+<div id="roomname" class="cp_tooltip"><span id="url_tooltiptext" onClick="copyCB();"><%= room %></span></div>
 
 <div id="card-groups">
   <div class="card-group" id="cards-1">
@@ -189,7 +203,13 @@ function removeCard( card_id ){
 
 function copyCB(){
   var str = $('#url_tooltiptext').attr( 'data-tooltip' );
-  copyClipboard( str );
+  if( copyClipboard( str ) ){
+    $('#roomname').addClass( 'blink' );
+    setTimeout( function(){
+      $('#roomname').removeClass( 'blink' );
+    }, 500 );
+  }else{
+  }
 }
 
 function copyClipboard( str ){
