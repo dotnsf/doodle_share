@@ -37,7 +37,7 @@ Social Application, which can share all participant doodles in real time.
 
     - exports.admin_password : password for Basic Authenticate to access /view and /admin
 
-    - exports.defaultroom : defarult room name when not specified
+    - exports.defaultroom : default room name when not specified
 
 - Deploy application into IBM Cloud
 
