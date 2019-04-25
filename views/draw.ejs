@@ -94,7 +94,7 @@ html, body{
   <br/>
   <input type="button" class="btn btn-xs" id="undo_btn" value="<" onClick="undo();" disabled="disabled"/>
   <input type="button" class="btn btn-xs btn-warning" value="reset" onClick="resetCanvas();"/>
-  <input type="button" class="btn btn-xs btn-primary" value="save" onClick="save();"/>
+  <input type="button" class="btn btn-xs btn-primary" id="save_btn" value="save" onClick="save();"/>
   <input type="button" class="btn btn-xs" id="redo_btn" value=">" onClick="redo();" disabled="disabled"/>
 </div>
 
@@ -141,6 +141,11 @@ $(function(){
   $('#commentModal').on( 'hidden.bs.modal', function(){
     sendImage();
   });
+
+<% if( !save ){ %>
+  $('#save_btn').addClass( 'btn-secondary' );
+  $('#save_btn').prop( 'disabled', true );
+<% } %>
 
 
   socketio = io.connect();

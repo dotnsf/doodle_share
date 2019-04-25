@@ -11,32 +11,33 @@ var express = require( 'express' ),
     uuidv1 = require( 'uuid/v1' ),
     app = express();
 var http = require( 'http' ).createServer( app );
-//var io = require( 'socket.io' );
 var io = require( 'socket.io' ).listen( http );
-//io.listen( http );
 
 var settings = require( './settings' );
 
 var db = null;
-var cloudant = cloudantlib( { account: settings.db_username, password: settings.db_password } );
-if( cloudant ){
-  cloudant.db.get( settings.db_name, function( err, body ){
-    if( err ){
-      if( err.statusCode == 404 ){
-        cloudant.db.create( settings.db_name, function( err, body ){
-          if( err ){
-            db = null;
-          }else{
-            db = cloudant.db.use( settings.db_name );
-          }
-        });
+var cloudant = null;
+if( settings.db_username && settings.db_password ){
+  cloudant = cloudantlib( { account: settings.db_username, password: settings.db_password } );
+  if( cloudant ){
+    cloudant.db.get( settings.db_name, function( err, body ){
+      if( err ){
+        if( err.statusCode == 404 ){
+          cloudant.db.create( settings.db_name, function( err, body ){
+            if( err ){
+              db = null;
+            }else{
+              db = cloudant.db.use( settings.db_name );
+            }
+          });
+        }else{
+          db = cloudant.db.use( settings.db_name );
+        }
       }else{
         db = cloudant.db.use( settings.db_name );
       }
-    }else{
-      db = cloudant.db.use( settings.db_name );
-    }
-  });
+    });
+  }
 }
 
 var appEnv = cfenv.getAppEnv();
@@ -72,7 +73,8 @@ app.get( '/draw', function( req, res ){
   if( !name ){ name = '' + ( new Date() ).getTime(); }
   var room = req.query.room;
   if( !room ){ room = settings.defaultroom; }
-  res.render( 'draw', { name: name, room: room } );
+  var save = ( db ? true : false );
+  res.render( 'draw', { name: name, room: room, save: save } );
 });
 
 app.get( '/view', function( req, res ){
@@ -107,80 +109,101 @@ app.get( '/admin', function( req, res ){
 app.post( '/image', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
-  var imgpath = req.file.path;
-  var imgtype = req.file.mimetype;
-  //var imgsize = req.file.size;
-  var ext = imgtype.split( "/" )[1];
-  var imgfilename = req.file.filename;
-  var filename = req.file.originalname;
+  if( db ){
+    var imgpath = req.file.path;
+    var imgtype = req.file.mimetype;
+    //var imgsize = req.file.size;
+    var ext = imgtype.split( "/" )[1];
+    var imgfilename = req.file.filename;
+    var filename = req.file.originalname;
 
-  var image_id = uuidv1();
-  var img = fs.readFileSync( imgpath );
-  var img64 = new Buffer( img ).toString( 'base64' );
+    var image_id = uuidv1();
+    var img = fs.readFileSync( imgpath );
+    var img64 = new Buffer( img ).toString( 'base64' );
 
-  var params = {
-    _id: image_id,
-    filename: filename,
-    type: 'image',
-    timestamp: ( new Date() ).getTime(),
-    name: req.body.name,
-    _attachments: {
-      image: {
-        content_type: imgtype,
-        data: img64
+    var params = {
+      _id: image_id,
+      filename: filename,
+      type: 'image',
+      timestamp: ( new Date() ).getTime(),
+      name: req.body.name,
+      _attachments: {
+        image: {
+          content_type: imgtype,
+          data: img64
+        }
       }
-    }
-  };
-  db.insert( params, image_id, function( err, body, header ){
-    if( err ){
-      console.log( err );
-      var p = JSON.stringify( { status: false, error: err }, null, 2 );
-      res.status( 400 );
-      res.write( p );
-      res.end();
-    }else{
-      var p = JSON.stringify( { status: true, id: image_id, body: body }, null, 2 );
-      res.write( p );
-      res.end();
-    }
-    fs.unlink( imgpath, function( err ){} );
-  });
+    };
+    db.insert( params, image_id, function( err, body, header ){
+      if( err ){
+        console.log( err );
+        var p = JSON.stringify( { status: false, error: err }, null, 2 );
+        res.status( 400 );
+        res.write( p );
+        res.end();
+      }else{
+        var p = JSON.stringify( { status: true, id: image_id, body: body }, null, 2 );
+        res.write( p );
+        res.end();
+      }
+      fs.unlink( imgpath, function( err ){} );
+    });
+  }else{
+    res.status( 400 );
+    res.write( JSON.stringify( { status: false, error: 'db is not initialized.' } ) );
+    res.end();
+  }
 });
 
 app.get( '/image', function( req, res ){
-  var image_id = req.query.id;
-  db.attachment.get( image_id, 'image', function( err1, body1 ){
-    res.contentType( 'image/png' );
-    res.end( body1, 'binary' );
-  });
+  if( db ){
+    var image_id = req.query.id;
+    db.attachment.get( image_id, 'image', function( err1, body1 ){
+      res.contentType( 'image/png' );
+      res.end( body1, 'binary' );
+    });
+  }else{
+    res.contentType( 'application/json; charset=utf-8' );
+    res.status( 400 );
+    res.write( JSON.stringify( { status: false, error: 'db is not initialized.' } ) );
+    res.end();
+  }
 });
 
 app.delete( '/image', function( req, res ){
   res.contentType( 'application/json; charset=utf-8' );
 
-  var id = req.query.id;
+  if( db ){
+    var id = req.query.id;
 
-  //. Cloudant から削除
-  db.get( id, null, function( err1, body1, header1 ){
-    if( err1 ){
-      err1.image_id = "error-1";
-      res.write( JSON.stringify( { status: false, error: err1 } ) );
-      res.end();
-    }
-
-    var rev = body1._rev;
-    db.destroy( id, rev, function( err2, body2, header2 ){
-      if( err2 ){
-        err2.image_id = "error-2";
-        res.write( JSON.stringify( { status: false, error: err2 } ) );
+    //. Cloudant から削除
+    db.get( id, null, function( err1, body1, header1 ){
+      if( err1 ){
+        err1.image_id = "error-1";
+        res.status( 400 );
+        res.write( JSON.stringify( { status: false, error: err1 } ) );
         res.end();
       }
 
-      body2.image_id = id;
-      res.write( JSON.stringify( { status: true, body: body2 } ) );
-      res.end();
+      var rev = body1._rev;
+      db.destroy( id, rev, function( err2, body2, header2 ){
+        if( err2 ){
+          err2.image_id = "error-2";
+          res.status( 400 );
+          res.write( JSON.stringify( { status: false, error: err2 } ) );
+          res.end();
+        }
+
+        body2.image_id = id;
+        res.write( JSON.stringify( { status: true, body: body2 } ) );
+        res.end();
+      });
     });
-  });
+  }else{
+    res.status( 400 );
+    res.write( JSON.stringify( { status: false, error: 'db is not initialized.' } ) );
+    res.end();
+  }
 });
 
 
