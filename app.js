@@ -264,11 +264,12 @@ io.sockets.on( 'connection', function( socket ){
     if( !view_sockets[room] ){
       view_sockets[room] = { socket: socket, timestamp: ts };
     }else{
-      if( view_sockets[room].timestamp + ( 10 * 60 * 60 * 1000 ) < ts ){ //. 10 hours
+      //. expired の判断はしないことにする
+      //if( view_sockets[room].timestamp + ( 10 * 60 * 60 * 1000 ) < ts ){ //. 10 hours
         view_sockets[room] = { socket: socket, timestamp: ts };
-      }else{
-        console.log( 'Room: "' + room + '" is not expired yet.' );
-      }
+      //}else{
+      //  console.log( 'Room: "' + room + '" is not expired yet.' );
+      //}
     }
     //console.log( view_socket );
   });
