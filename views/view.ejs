@@ -60,51 +60,9 @@ html, body{
   }
 }
 .card-group .card{
-  max-width: 20%;
-}
-.cp_tooltip{
-  font-size: 30px;
-  font-weight: bold;
-  display: inline-block;
-}
-.cp_tooltiptext{
-  position: relative;
-  cursor: pointer;
-  //background: linear-gradient(transparent 60%, #f19ec2 60%);
-}
-.cp_tooltiptext::after {
-  position: absolute;
-  transition: all 0.3s ease 0s;
-  opacity: 0;
-  top: 0px;/*HOVERのスタート位置*/
-  left: 0px;
-  display: block;
-  padding: 0.2em 0.5em;
-  content: attr(data-tooltip);
-  white-space: nowrap;
-  color: #ffffff;
-  border-radius: 6px;
-  background: #1b2538;
-  font-size: 10pt;
-}
-.cp_tooltiptext:hover::after {
-  top: 46px;/*HOVER位置*/
-  left: -40px;
-  opacity: 1;
-}
-.blink{
-  animation: 1s linear infinite blink_effect;
-}
-@keyframes blink_effect{
-  0%{
-    visibility: hidden;
-  }
-  50%{
-    visibility: hidden;
-  }
-  100%{
-    visibility: visible;
-  }
+  /*max-width: 20%;*/
+  /*max-width: 16%;*/
+  max-width: calc(100% /<%= columns %>);
 }
 </style>
 </head>

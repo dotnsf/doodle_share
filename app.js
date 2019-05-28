@@ -80,7 +80,13 @@ app.get( '/draw', function( req, res ){
 app.get( '/view', function( req, res ){
   var room = req.query.room;
   if( !room ){ room = settings.defaultroom; }
-  res.render( 'view', { room: room } );
+  var columns = req.query.columns;
+  if( columns ){
+    columns = parseInt( columns );
+  }else{
+    columns = settings.defaultcolumns;
+  }
+  res.render( 'view', { room: room, columns: columns } );
 });
 
 app.get( '/admin', function( req, res ){

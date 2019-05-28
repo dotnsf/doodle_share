@@ -6,6 +6,7 @@ exports.admin_username = 'admin';
 exports.admin_password = 'password';
 
 exports.defaultroom = 'default';
+exports.defaultcolumns = 5;
 
 exports.app_port = 0;
 
@@ -16,4 +17,3 @@ if( process.env.VCAP_SERVICES ){
     exports.db_password = VCAP_SERVICES.cloudantNoSQLDB[0].credentials.password;
   }
 }
-
