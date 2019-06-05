@@ -44,21 +44,21 @@ html, body{
   font-size: 20px;
   color: #333;
 }
-#mycanvas{
-  border: 1px solid #333;
+.errortext{
+  border: 2px solid #f00;
 }
 </style>
 </head>
 <body>
 
 <div class="container">
-<table class="table">
-<tr>
-  <td><input type="text" class="form-control" id="room" value="" placeholder="Room" /></td>
-  <td><input type="text" class="form-control" id="name" value="" placeholder="Your name .." /></td>
-  <td><input type="button" class="btn btn-xs btn-primary" value="Start" onClick="startDrawing();"/></td>
-</tr>
-</table>
+  <input type="text" class="form-control" id="room" value="" placeholder="Room" />
+  <select class="form-control" id="ui">
+    <option value="draw" selected>Draw</option>
+    <option value="airpen">AirPen(Beta)</option>
+  </select>
+  <input type="text" class="form-control" id="name" value="" placeholder="Your name .." />
+  <input type="button" class="btn btn-xs btn-primary" value="Start" onClick="startDrawing();"/>
 </div>
 
 <script>
@@ -81,13 +81,17 @@ $(function(){
 });
 
 function startDrawing(){
+  var ui = $('#ui').val();
   var room = $('#room').val();
   if( !room ){ room = ''; }
   var name = $('#name').val();
   if( name ){
     document.cookie = "name=" + name;
+    location.href = '/' + ui + '?room=' + room + '&name=' + name;
+  }else{
+    $('#name').addClass( 'errortext' );
+    //$('#name').focus();
   }
-  location.href = '/draw?room=' + room + '&name=' + name;
 }
 </script>
 </body>

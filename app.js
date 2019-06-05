@@ -77,6 +77,15 @@ app.get( '/draw', function( req, res ){
   res.render( 'draw', { name: name, room: room, save: save } );
 });
 
+app.get( '/airpen', function( req, res ){
+  var name = req.query.name;
+  if( !name ){ name = '' + ( new Date() ).getTime(); }
+  var room = req.query.room;
+  if( !room ){ room = settings.defaultroom; }
+  var save = ( db ? true : false );
+  res.render( 'airpen', { name: name, room: room, save: save } );
+});
+
 app.get( '/view', function( req, res ){
   var room = req.query.room;
   if( !room ){ room = settings.defaultroom; }
