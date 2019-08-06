@@ -101,7 +101,7 @@ $(function(){
   });
 
   socketio.on( 'init_client_view', function( msg ){
-    var socket_id = msg.socket_id;
+    var socket_id = msg.uuid; //msg.socket_id;
     if( socket_ids.indexOf( socket_id ) > -1 ){
     }else{
       socket_ids.push( socket_id );
@@ -129,7 +129,7 @@ $(function(){
   });
 
   socketio.on( 'image_client_view', function( msg ){
-    var socket_id = msg.socket_id;
+    var socket_id = msg.uuid; //msg.socket_id;
     if( socket_ids.indexOf( socket_id ) > -1 ){
       $('#image_'+socket_id).prop( 'src', msg.image_src );
       $('#image_'+socket_id).prop( 'title', msg.comment );

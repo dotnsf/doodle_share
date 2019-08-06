@@ -518,9 +518,22 @@ function redrawCanvas(){
 
 function generateUUID(){
   //. Cookie の値を調べて、有効ならその値で、空だった場合は生成する
+  var did = null;
+  cookies = document.cookie.split(";");
+  for( var i = 0; i < cookies.length; i ++ ){
+    var str = cookies[i].split("=");
+    if( unescape( str[0] ) == " deviceid" ){
+      did = unescape( unescape( str[1] ) );
+    }
+  }
 
-  var s = 1000;
-  return new Date().getTime().toString(16) + Math.floor( s * Math.random() ).toString(16);
+  if( did == null ){
+    var s = 1000;
+    did = ( new Date().getTime().toString(16) ) + Math.floor( s * Math.random() ).toString(16);
+    document.cookie = ( "deviceid=" + did );
+  }
+
+  return did;
 }
 
 function sendImage(){
