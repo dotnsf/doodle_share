@@ -175,9 +175,15 @@ function init(){
 
   if( window.DeviceOrientationEvent ){
     //. iOS 13 対応 : https://bagelee.com/webar-vr/ios13-webar-webvr/
-    if( window.DeviceOrientationEvent.requestPermission && typeof window.DeviceOrientationEvent.requestPermission === 'function' ){
-      window.DeviceOrientationEvent.requestPermission();
-      window.addEventListener( "deviceorientation", deviceOrientation );
+    //.             : https://qiita.com/nakakaz11/items/a9be602874bd54819a18
+    if( DeviceOrientationEvent.requestPermission && typeof DeviceOrientationEvent.requestPermission === 'function' ){
+      DeviceOrientationEvent.requestPermission().then( function( response ){
+        if( response === 'granted' ){
+          window.addEventListener( "deviceorientation", deviceOrientation );
+        }
+      }).catch( function( e ){
+        console.log( e );
+      });
     }else{
       window.addEventListener( "deviceorientation", deviceOrientation );
     }
