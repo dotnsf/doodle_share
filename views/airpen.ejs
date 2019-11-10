@@ -174,6 +174,10 @@ function init(){
   var ctx = canvas.getContext( '2d' );
 
   if( window.DeviceOrientationEvent ){
+    //. iOS 13 対応 : https://bagelee.com/webar-vr/ios13-webar-webvr/
+    if( window.DeviceOrientationEvent.requestPermission && typeof window.DeviceOrientationEvent.requestPermission === 'function' ){
+      window.DeviceOrientationEvent.requestPermission();
+    }
     window.addEventListener( "deviceorientation", deviceOrientation );
   }
 
