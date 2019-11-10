@@ -2,7 +2,6 @@
 
 var express = require( 'express' ),
     basicAuth = require( 'basic-auth-connect' ),
-    cfenv = require( 'cfenv' ),
     i18n = require( 'i18n' ),
     multer = require( 'multer' ),
     bodyParser = require( 'body-parser' ),
@@ -40,8 +39,6 @@ if( settings.db_username && settings.db_password ){
     });
   }
 }
-
-var appEnv = cfenv.getAppEnv();
 
 
 app.all( '/admin', basicAuth( function( user, pass ){
@@ -346,5 +343,6 @@ function timestamp2datetime( ts ){
 
 
 //app.listen( appEnv.port );
-http.listen( appEnv.port );
-console.log( "server stating on " + appEnv.port + " ..." );
+var port = process.env.PORT || 3000;
+app.listen( port );
+console.log( "server starting on " + port + " ..." );
