@@ -3,6 +3,7 @@
 var express = require( 'express' ),
     basicAuth = require( 'basic-auth-connect' ),
     cfenv = require( 'cfenv' ),
+    i18n = require( 'i18n' ),
     multer = require( 'multer' ),
     bodyParser = require( 'body-parser' ),
     fs = require( 'fs' ),
@@ -67,6 +68,13 @@ app.use( express.static( __dirname + '/public' ) );
 
 app.set( 'views', __dirname + '/views' );
 app.set( 'view engine', 'ejs' );
+
+//. i18n
+i18n.configure({
+  locales: ['ja', 'en'],
+  directory: __dirname + '/locales'
+});
+app.use( i18n.init );
 
 app.get( '/draw', function( req, res ){
   var name = req.query.name;

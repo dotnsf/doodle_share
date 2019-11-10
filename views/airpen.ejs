@@ -60,19 +60,19 @@ body{
 <h3 id="name"><%= name %></h3>
 
 <select id="select_color" name="select_color">
-  <option style="color:black;" value="transparent">透明</option>
-  <option style="color:black;" value="black" selected="selected">黒</option>
-  <option style="color:lightgray;" value="white">白</option>
-  <option style="color:red;" value="red">赤</option>
-  <option style="color:blue;" value="blue">青</option>
-  <option style="color:green;" value="green">緑</option>
-  <option style="color:yellow;" value="yellow">黄</option>
-  <option style="color:cyan;" value="cyan">空</option>
-  <option style="color:magenta;" value="magenta">紫</option>
-  <option style="color:gray;" value="gray">灰</option>
-  <option style="color:#ef8f9c;" value="#ef8f9c">ピンク</option>
-  <option style="color:#ead2ad;" value="#ead2ad">肌</option>
-  <option style="color:#7c6035;" value="#7c6035">茶</option>
+  <option style="color:black;" value="transparent"><%= __('common.color.transparent') %></option>
+  <option style="color:black;" value="black" selected="selected"><%= __('common.color.black') %></option>
+  <option style="color:lightgray;" value="white"><%= __('common.color.white') %></option>
+  <option style="color:red;" value="red"><%= __('common.color.red') %></option>
+  <option style="color:blue;" value="blue"><%= __('common.color.blue') %></option>
+  <option style="color:green;" value="green"><%= __('common.color.green') %></option>
+  <option style="color:yellow;" value="yellow"><%= __('common.color.yellow') %></option>
+  <option style="color:cyan;" value="cyan"><%= __('common.color.cyan') %></option>
+  <option style="color:magenta;" value="magenta"><%= __('common.color.magenta') %></option>
+  <option style="color:gray;" value="gray"><%= __('common.color.gray') %></option>
+  <option style="color:#ef8f9c;" value="#ef8f9c"><%= __('common.color.pink') %></option>
+  <option style="color:#ead2ad;" value="#ead2ad"><%= __('common.color.beige') %></option>
+  <option style="color:#7c6035;" value="#7c6035"><%= __('common.color.brown') %></option>
 </select>
 
 <select id="select_linewidth" name="select_linewidth">
@@ -88,7 +88,7 @@ body{
   <option value="10">10</option>
 </select>
 
-<input type="button" class="btn btn-xs btn-secondary p-0" id="setbg_btn" value="背景色" onClick="setBG();"/>
+<input type="button" class="btn btn-xs btn-secondary p-0" id="setbg_btn" value="<%= __('common.button.bgcolor') %>" onClick="setBG();"/>
 <!--
 <a href="#" class="btn btn-xs btn-secondary p-0" id="setbg_btn" onClick="setBG();"/><i class="far fa-image"></i></a>
 -->
@@ -99,8 +99,8 @@ body{
 
   <br/>
   <input type="button" class="btn btn-xs" id="undo_btn" value="<" onClick="undo();" disabled="disabled"/>
-  <input type="button" class="btn btn-xs btn-warning" value="reset" onClick="resetCanvas();"/>
-  <input type="button" class="btn btn-xs btn-primary" id="save_btn" value="save" onClick="save();"/>
+  <input type="button" class="btn btn-xs btn-warning" value="<%= __('common.button.reset') %>" onClick="resetCanvas();"/>
+  <input type="button" class="btn btn-xs btn-primary" id="save_btn" value="<%= __('common.button.save') %>" onClick="save();"/>
   <input type="button" class="btn btn-xs" id="redo_btn" value=">" onClick="redo();" disabled="disabled"/>
 </div>
 
@@ -108,7 +108,7 @@ body{
   <div class="modal-dialog modal-dialog-centered modal-lg">
     <div class="modal-content">
       <div class="modal-header">
-        <h4 class="modal-title" id="commentModalLabel">コメント</h4>
+        <h4 class="modal-title" id="commentModalLabel"><%= __('common.comment') %></h4>
       </div>
       <div class="modal-body" id="commentmodal-body">
         <textarea id="comment"></textarea>
