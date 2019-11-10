@@ -344,5 +344,5 @@ function timestamp2datetime( ts ){
 
 //app.listen( appEnv.port );
 var port = process.env.PORT || 3000;
-app.listen( port );
+http.listen( port );
 console.log( "server starting on " + port + " ..." );
