@@ -16,6 +16,8 @@
   "common.button.background": "背景色",
   "common.button.reset": "リセット",
   "common.button.save": "保存",
+  "common.button.post": "送信",
   "common.comment": "コメント",
+  "common.history": "履歴",
   "dummy": "dummy"
 }

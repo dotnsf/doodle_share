@@ -16,6 +16,8 @@
   "common.button.background": "BG",
   "common.button.reset": "Reset",
   "common.button.save": "Save",
+  "common.button.post": "Post",
   "common.comment": "Comment",
+  "common.history": "History",
   "dummy": "dummy"
 }
