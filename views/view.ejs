@@ -8,6 +8,10 @@
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
 <script src="/socket.io/socket.io.js"></script>
 <script src="/qrcode.min.js"></script>
+
+<link href="/colorbox.css" rel="stylesheet"/>
+<script src="/jquery.colorbox-min.js"></script>
+
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
 <link rel="shortcut icon" href="/icon.png" type="image/png"/>
@@ -67,14 +71,16 @@ html, body{
 </style>
 </head>
 <body>
-<!--
-<div class="cp_tooltip"><span id="url_tooltiptext" data-tooltip="" class="cp_tooltiptext"><%= room %></span></div>
-<div id="roomname" class="cp_tooltip"><span id="url_tooltiptext" onClick="copyCB();"><%= room %></span></div>
--->
+
 <canvas id="qrcode"></canvas>
 
 <div id="card-groups">
   <div class="card-group" id="cards-1">
+  </div>
+</div>
+
+<div style="display:none;">
+  <div id="box_content">
   </div>
 </div>
 
@@ -116,15 +122,20 @@ $(function(){
         $('#card-groups').append( '<div class="card-group" id="cards-' + row + '">' );
       }
 
-      var card = '<div id="card_' + socket_id + '" class="card border-' + color + '">'
+      var card = '<div id="card_' + socket_id + '" class="card border-' + color + '" style="cursor: pointer;">'
         + '<div class="card-body text-' + color + '">'
         //+ '<h4 class="card-title">' + msg.name + '</h4>'
         + '<h4 class="card-title"><a href="#" class="btn btn-xs btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>' + msg.name + '</h4>'
         + '</div>'
+        + '<a href="#box_content" id="box_content_' + socket_id + '">'
         + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" width="315" height="330"/>'
+        + '</a>'
         //+ '<a href="#" class="btn btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>'
         + '</div>';
       $('#cards-'+row).append( card );
+
+      //$('#card_'+socket_id).colorbox.remove();
+			$('#box_content_'+socket_id).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( socket_id ); } });
     }
   });
 
@@ -167,6 +178,11 @@ function generateColor( name ){
 function removeCard( card_id ){
   $('#'+card_id).css( 'display', 'none' );
 }
+
+function zoomImage( socket_id ){
+  $('#box_content').html( '<img src="' + $('#image_'+socket_id).prop( 'src' ) + '"/>' );
+}
+
 
 function copyCB(){
   var str = $('#url_tooltiptext').attr( 'data-tooltip' );
