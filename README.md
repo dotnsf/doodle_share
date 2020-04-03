@@ -39,6 +39,8 @@ Social Application, which can share all participant doodles in real time.
 
     - exports.defaultroom : default room name when not specified
 
+    - exports.intervalms : default reload interval milliseconds for screen sharing
+
 - Deploy application into IBM Cloud
 
 
@@ -61,4 +63,4 @@ Social Application, which can share all participant doodles in real time.
 
 ## Copyright
 
-2019 [K.Kimura @ Juge.Me](https://github.com/dotnsf) all rights reserved.
+2019-2020 [K.Kimura @ Juge.Me](https://github.com/dotnsf) all rights reserved.

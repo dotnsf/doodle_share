@@ -91,6 +91,14 @@ app.get( '/airpen', function( req, res ){
   res.render( 'airpen', { name: name, room: room, save: save } );
 });
 
+app.get( '/screen', function( req, res ){
+  var name = req.query.name;
+  if( !name ){ name = '' + ( new Date() ).getTime(); }
+  var room = req.query.room;
+  if( !room ){ room = settings.defaultroom; }
+  res.render( 'screen', { name: name, room: room, intervalms: settings.intervalms } );
+});
+
 app.get( '/view', function( req, res ){
   var room = req.query.room;
   if( !room ){ room = settings.defaultroom; }
