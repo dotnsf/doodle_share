@@ -124,26 +124,34 @@ $(function(){
 
       var card = '<div id="card_' + socket_id + '" class="card border-' + color + '" style="cursor: pointer;">'
         + '<div class="card-body text-' + color + '">'
-        //+ '<h4 class="card-title">' + msg.name + '</h4>'
         + '<h4 class="card-title"><a href="#" class="btn btn-xs btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>' + msg.name + '</h4>'
         + '</div>'
         + '<a href="#box_content" id="box_content_' + socket_id + '">'
-        + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" width="315" height="330"/>'
+        + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" ts="' + msg.timestamp + '" width="315" height="330"/>'
         + '</a>'
-        //+ '<a href="#" class="btn btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>'
         + '</div>';
       $('#cards-'+row).append( card );
 
-      //$('#card_'+socket_id).colorbox.remove();
-			$('#box_content_'+socket_id).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( socket_id ); } });
+      $('#box_content_'+socket_id).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( socket_id ); } });
     }
   });
 
   socketio.on( 'image_client_view', function( msg ){
     var socket_id = msg.uuid; //msg.socket_id;
     if( socket_ids.indexOf( socket_id ) > -1 ){
-      $('#image_'+socket_id).prop( 'src', msg.image_src );
-      $('#image_'+socket_id).prop( 'title', msg.comment );
+      var ts = $('#image_'+socket_id).attr( 'ts' );
+      ts = parseInt( ts );
+
+      if( msg.timestamp > ts ){
+        $('#image_'+socket_id).prop( 'src', msg.image_src );
+        $('#image_'+socket_id).prop( 'title', msg.comment );
+        $('#image_'+socket_id).prop( 'ts', msg.timestamp );
+
+        var zoom_socket_id = $('#zoom_image').attr( 'socket_id' );
+        if( zoom_socket_id && zoom_socket_id == socket_id ){
+          $('#zoom_image').prop( 'src', msg.image_src );
+        }
+      }
     }
   });
 });
@@ -180,7 +188,7 @@ function removeCard( card_id ){
 }
 
 function zoomImage( socket_id ){
-  $('#box_content').html( '<img src="' + $('#image_'+socket_id).prop( 'src' ) + '"/>' );
+  $('#box_content').html( '<img id="zoom_image" socket_id="' + socket_id + '" src="' + $('#image_'+socket_id).prop( 'src' ) + '"/>' );
 }
 
 

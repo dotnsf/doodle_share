@@ -239,6 +239,7 @@ function resized(){
       uuid: uuid,
       room: '<%= room %>',
       name: name,
+      timestamp: ( new Date() ).getTime(),
       width: canvas_width,
       height: canvas_height
     };
@@ -511,6 +512,7 @@ function sendImage(){
     uuid: uuid,
     room: '<%= room %>',
     comment: comment,
+    timestamp: ( new Date() ).getTime(),
     image_src: png
   };
   socketio.json.emit( 'image_client', msg );
