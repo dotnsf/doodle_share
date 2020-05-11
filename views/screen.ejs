@@ -113,7 +113,8 @@ function generateUUID(){
   if( did == null ){
     var s = 1000;
     did = ( new Date().getTime().toString(16) ) + Math.floor( s * Math.random() ).toString(16);
-    document.cookie = ( "deviceid=" + did );
+    var maxage = 60 * 60 * 24 * 365 * 100; //. 100years
+    document.cookie = ( "deviceid=" + did + "; max-age=" + maxage );
   }
 
   return did;

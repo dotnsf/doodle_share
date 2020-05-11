@@ -87,7 +87,8 @@ function startDrawing(){
   if( !room ){ room = ''; }
   var name = $('#name').val();
   if( name ){
-    document.cookie = "name=" + name;
+    var maxage = 60 * 60 * 24 * 365 * 100; //. 100years
+    document.cookie = ( "name=" + name + '; max-age=' + maxage );
     location.href = '/' + ui + '?room=' + room + '&name=' + name;
   }else{
     $('#name').addClass( 'errortext' );
