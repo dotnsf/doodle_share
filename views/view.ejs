@@ -53,15 +53,7 @@ html, body{
   border: 1px solid #333;
 }
 .card-columns{
-  @include media-breakpoint-only(xl){
-    column-count: 5;
-  }
-  @include media-breakpoint-only(lg){
-    column-count: 4;
-  }
-  @include media-breakpoint-only(md){
-    column-count: 3;
-  }
+  column-count: <%= columns %>;
 }
 .card-group .card{
   /*max-width: 20%;*/
@@ -117,7 +109,7 @@ $(function(){
       var color = generateColor( msg.name );
 
       cnt ++;
-      if( cnt > 1 && cnt % 5 == 1 ){
+      if( cnt > 1 && cnt % <%= columns %> == 1 ){
         row ++;
         $('#card-groups').append( '<div class="card-group" id="cards-' + row + '">' );
       }

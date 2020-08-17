@@ -278,6 +278,19 @@ app.get( '/images', function( req, res ){
 });
 
 
+app.post( '/setcookie', function( req, res ){
+  res.contentType( 'application/json; charset=utf-8' );
+
+  var value = req.body.value;
+  //console.log( 'value = ' + value );
+  res.setHeader( 'Set-Cookie', value );
+
+  res.write( JSON.stringify( { status: true }, 2, null ) );
+  res.end();
+});
+
+
+
 //. socket.io
 var view_sockets = {};
 io.sockets.on( 'connection', function( socket ){
