@@ -97,6 +97,7 @@ $(function(){
   });
 
   //. Only for debug
+  /*
   $('#qrcode').on( 'click', function( e ){
     $('#card-groups').html( '' );
 
@@ -113,6 +114,7 @@ $(function(){
     //. カードグループを必要数だけ追加
     appendCardGroups( '#card-groups', cards.length, 4, 3 );
   });
+  */
 
   socketio.on( 'init_client_view', function( msg ){
     var socket_id = msg.uuid; //msg.socket_id;
