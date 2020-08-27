@@ -16,7 +16,7 @@ Social Application, which can share all participant doodles in real time.
 
 - Node.js runtime
 
-- IBM Cloudant
+- IBM Cloudant(Optional)
 
     - Create one database named **doodleshare**
 
@@ -46,7 +46,7 @@ Social Application, which can share all participant doodles in real time.
 
 ## How to use
 
-- First, administrator need to access to /view so that it can handle all client.
+- First, administrator need to access to /view **with Chrome** so that it can handle all client.
 
     - If you want to specify room name, then access to /view?room=XXXX
 
@@ -56,7 +56,7 @@ Social Application, which can share all participant doodles in real time.
 
 - When user draw their doodle in their smartphone, all doodles would be shown in /view screen.
 
-    - User can **save** their doodle, if they want.
+    - (Optional)User can **save** their doodle, if Cloudant is ready.
 
 - When administrator access to /admin, they can view all saved images.
 
