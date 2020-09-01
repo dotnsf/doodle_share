@@ -8,7 +8,7 @@ exports.admin_password = 'password';
 exports.defaultroom = 'default';
 exports.defaultcolumns = 5;
 
-exports.intervalms = 5000;
+exports.intervalms = 1000;
 
 exports.app_port = 0;
 
