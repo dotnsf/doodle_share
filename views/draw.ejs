@@ -407,6 +407,12 @@ function init(){
     event.preventDefault();
   }
   window.addEventListener( 'touchmove', movefun, { passive: false } );
+
+  //. #12
+  socketio.on( 'change_subject_view', function( msg ){
+    console.log( 'change_subject_view', msg );
+    $('#name').html( msg.subject );
+  });
 }
 
 function resized(){

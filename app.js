@@ -342,6 +342,16 @@ io.sockets.on( 'connection', function( socket ){
       view_sockets[room].socket.json.emit( 'image_client_view', msg );
     }
   });
+
+  //. #12
+  socket.on( 'change_subject', function( msg ){
+    //msg.socket_id = socket.id;
+    var room = msg.room ? msg.room : settings.defaultroom;
+    if( view_sockets[room] ){
+      //. ブロードキャストする
+      view_sockets[room].socket.broadcast.emit( 'change_subject_view', msg );
+    }
+  });
 });
 
 

@@ -58,10 +58,20 @@ html, body{
 .card-group .card{
   max-width: calc(100%);
 }
+#subject{
+  color: #008;
+  font-size: 20px;
+  font-weight: bold;
 }
 </style>
 </head>
 <body>
+
+<!-- #12 -->
+<div>
+<span id="subject"></span>
+<input class="form-control" id="subject_edit" style="display: none;" value=""/>
+</div>
 
 <canvas id="qrcode"></canvas>
 
@@ -85,8 +95,6 @@ var base_url = location.origin + '/';
 
 var cards = [];    //. カード
 var imgs = {};     //. 画像データ
-//var row = 1;
-//var cnt = 0;
 
 $(function(){
   socketio = io.connect();
@@ -97,30 +105,33 @@ $(function(){
     if( err ){ console.log( err ); }
   });
 
-  //. Only for debug
-  /*
+  //. #12
   $('#qrcode').on( 'click', function( e ){
-    $('#card-groups').html( '' );
-    $.colorbox.remove();
-
-    //. カード追加
-    var color = 'secondary'; 
-    var card = '<div id="card_' + cards.length + '" class="card border-' + color + '" style="cursor: pointer;">'
-      + '<div class="card-body text-' + color + '">'
-      + '<h4 class="card-title"><a href="#" class="btn btn-xs btn-' + color + '" onClick="removeCard(\'card_' + cards.length + '\');">&times;</a>#' + cards.length + '</h4>'
-      + '</div>'
-      + '<a href="#box_content" id="box_content_' + cards.length + '" title="#' + cards.length + '">'
-      //+ '#' + cards.length
-      + '<img class="card-img-bottom" id="image_' + cards.length + '" alt="(image of ' + cards.length + ')" ts="0" src="./' + Math.floor( Math.random() * 3 ) + '.png"/>'
-      + '</a>'
-      + '</div>';
-    //$('#box_content_'+cards.length).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( cards.length ); }, onClosed: function(){ $('#box_content').html(''); } });
-    cards.push( card );
-
-    //. カードグループを必要数だけ追加
-    appendCardGroups( '#card-groups', cards.length );
+    $('#subject').css( 'display', 'none' );
+    $('#subject_edit').css( 'display', 'block' );
   });
-  */
+
+  $('#subject_edit').keyup( function( e ){
+    var key = e.key;
+    if( key == 'Enter' ){
+      var subject = $('#subject_edit').val();
+      $('#subject').html( subject );
+      $('#subject').css( 'display', 'block' );
+      $('#subject_edit').css( 'display', 'none' );
+
+      //. WebSocket で通知
+      socketio.emit( 'change_subject', { room: '<%= room %>', subject: subject } );
+    }
+  });
+  $('#subject_edit').focusout( function( e ){
+    var subject = $('#subject_edit').val();
+    $('#subject').html( subject );
+    $('#subject').css( 'display', 'block' );
+    $('#subject_edit').css( 'display', 'none' );
+
+    //. WebSocket で通知
+    socketio.emit( 'change_subject', { room: '<%= room %>', subject: subject } );
+  });
 
   socketio.on( 'init_client_view', function( msg ){
     var socket_id = msg.uuid; //msg.socket_id;
