@@ -57,6 +57,14 @@ app.all( '/view', basicAuth( function( user, pass ){
   }
 }));
 
+app.all( '/classicview', basicAuth( function( user, pass ){
+  if( settings.admin_username && settings.admin_password ){
+    return ( settings.admin_username === user && settings.admin_password === pass );
+  }else{
+    return false;
+  }
+}));
+
 app.use( multer( { dest: './tmp/' } ).single( 'image' ) );
 app.use( bodyParser.urlencoded( { extended: true } ) );
 app.use( bodyParser.json() );
@@ -109,6 +117,18 @@ app.get( '/view', function( req, res ){
     columns = settings.defaultcolumns;
   }
   res.render( 'view', { room: room, columns: columns } );
+});
+
+app.get( '/classicview', function( req, res ){
+  var room = req.query.room;
+  if( !room ){ room = settings.defaultroom; }
+  var columns = req.query.columns;
+  if( columns ){
+    columns = parseInt( columns );
+  }else{
+    columns = settings.defaultcolumns;
+  }
+  res.render( 'classicview', { room: room, columns: columns } );
 });
 
 app.get( '/admin', function( req, res ){
