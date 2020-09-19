@@ -482,7 +482,7 @@ function save(){
   formData.append( 'image', blob );    //. <form enctype='multipart/formdata'><input name='image' type='file'/> ...
   formData.append( 'timestamp', ( new Date() ).getTime() );
   formData.append( 'name', $('#name').text() );
-  formData.append( 'comment', $('#comment').text() );
+  formData.append( 'comment', $('#comment').val() );
   formData.append( 'room', '<%= room %>' );
   formData.append( 'uuid', uuid );
   $.ajax({
@@ -492,7 +492,7 @@ function save(){
     contentType: false,
     processData: false,
     success: function( data, dataType ){
-      $('#comment').val( '' );
+      //$('#comment').val( '' );
       console.log( data );
     },
     error: function( jqXHR, textStatus, errorThrown ){

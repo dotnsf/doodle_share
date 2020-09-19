@@ -131,6 +131,18 @@ app.get( '/classicview', function( req, res ){
   res.render( 'classicview', { room: room, columns: columns } );
 });
 
+app.get( '/savedimages', function( req, res ){
+  var room = req.query.room;
+  if( !room ){ room = settings.defaultroom; }
+  var columns = req.query.columns;
+  if( columns ){
+    columns = parseInt( columns );
+  }else{
+    columns = settings.defaultcolumns;
+  }
+  res.render( 'savedimages', { room: room, columns: columns } );
+});
+
 app.get( '/admin', function( req, res ){
   if( db ){
     db.list( { include_docs: true }, function( err, body ){
@@ -175,6 +187,9 @@ app.post( '/image', function( req, res ){
       type: 'image',
       timestamp: ( new Date() ).getTime(),
       name: req.body.name,
+      comment: req.body.comment,
+      room: req.body.room,
+      uuid: req.body.uuid,
       _attachments: {
         image: {
           content_type: imgtype,
@@ -260,8 +275,39 @@ app.get( '/images', function( req, res ){
 
   var limit = req.query.limit ? parseInt( req.query.limit ) : 0;
   var offset = req.query.offset ? parseInt( req.query.offset ) : 0;
+  var room = req.query.room ? req.query.room : settings.defaultroom;
 
   if( db ){
+    db.find( { selector: { room: { "$eq": room } }, fields: [ "_id", "_rev", "name", "type", "comment", "timestamp", "room", "uuid" ] }, function( err, result ){
+      if( err ){
+        res.status( 400 );
+        res.write( JSON.stringify( { status: false, message: err }, 2, null ) );
+        res.end();
+      }else{
+        var total = result.docs.length;
+        var images = [];
+        result.docs.forEach( function( doc ){
+          if( doc._id.indexOf( '_' ) !== 0 && doc.type && doc.type == 'image' ){
+            images.push( doc );
+          }
+        });
+
+        images.sort( sortByTimestamp );
+
+        if( offset || limit ){
+          if( offset + limit > total ){
+            images = images.slice( offset );
+          }else{
+            images = images.slice( offset, offset + limit );
+          }
+        }
+
+        var result = { status: true, room: room, total: total, limit: limit, offset: offset, images: images };
+        res.write( JSON.stringify( result, 2, null ) );
+        res.end();
+      }
+    });
+/*
     db.list( { include_docs: true }, function( err, body ){
       if( err ){
         res.status( 400 );
@@ -290,6 +336,7 @@ app.get( '/images', function( req, res ){
         res.end();
       }
     });
+    */
   }else{
     res.status( 400 );
     res.write( JSON.stringify( { status: false, message: 'db is failed to initialize.' }, 2, null ) );
@@ -390,6 +437,17 @@ function timestamp2datetime( ts ){
   }else{
     return "";
   }
+}
+
+function sortByTimestamp( a, b ){
+  var r = 0;
+  if( a.timestamp < b.timestamp ){
+    r = -1;
+  }else if( a.timestamp > b.timestamp ){
+    r = 1;
+  }
+
+  return r;
 }
 
 
