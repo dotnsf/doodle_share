@@ -6,7 +6,7 @@ exports.admin_username = 'admin';
 exports.admin_password = 'password';
 
 exports.defaultroom = 'default';
-exports.defaultcolumns = 5;
+exports.defaultcolumns = 6;
 
 exports.intervalms = 1000;
 
