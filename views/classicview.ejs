@@ -53,35 +53,24 @@ html, body{
   border: 1px solid #333;
 }
 .card-columns{
-  column-count: 1;
+  column-count: <%= columns %>;
 }
 .card-group .card{
-  max-width: calc(100%);
-}
-#subject{
-  color: #008;
-  font-size: 20px;
-  font-weight: bold;
+  /*max-width: 20%;*/
+  /*max-width: 16%;*/
+  max-width: calc(100% /<%= columns %>);
 }
 </style>
 </head>
 <body>
-
-<!-- #12 -->
-<div>
-<span id="subject"></span>
-<input class="form-control" id="subject_edit" style="display: none;" value=""/>
-</div>
 
 <a target="new_" href="/savedimages?room=<%= room %>">
 <canvas id="qrcode"></canvas>
 </a>
 
 <div id="card-groups">
-  <!--
   <div class="card-group" id="cards-1">
   </div>
-  -->
 </div>
 
 <div style="display:none;">
@@ -95,45 +84,51 @@ var socket_ids = [];
 
 var base_url = location.origin + '/';
 
-var cards = [];    //. カード
-var imgs = {};     //. 画像データ
+var row = 1;
+var cnt = 0;
 
 $(function(){
   socketio = io.connect();
 
   init();
 
+  /*
+  $('#url_tooltiptext').attr( 'data-tooltip', base_url + '?room=<%= room %>' );
+  $('#url_tooltiptext').addClass( 'cp_tooltiptext' );
+  */
   QRCode.toCanvas( document.getElementById( 'qrcode' ), base_url + '?room=<%= room %>', function( err ){
     if( err ){ console.log( err ); }
   });
 
-  //. #12
+  /* debug */
+  /*
   $('#qrcode').on( 'click', function( e ){
-    $('#subject').css( 'display', 'none' );
-    $('#subject_edit').css( 'display', 'block' );
-  });
+    cnt ++;
 
-  $('#subject_edit').keyup( function( e ){
-    var key = e.key;
-    if( key == 'Enter' ){
-      var subject = $('#subject_edit').val();
-      $('#subject').html( subject );
-      $('#subject').css( 'display', 'block' );
-      $('#subject_edit').css( 'display', 'none' );
+    var msg = {
+      name: '#' + cnt,
+      timestamp: 0
+    };
+    var color = generateColor( msg.name );
 
-      //. WebSocket で通知
-      socketio.emit( 'change_subject', { room: '<%= room %>', subject: subject } );
+    if( cnt > 1 && cnt % <%= columns %> == 1 ){
+      row ++;
+      $('#card-groups').append( '<div class="card-group" id="cards-' + row + '">' );
     }
-  });
-  $('#subject_edit').focusout( function( e ){
-    var subject = $('#subject_edit').val();
-    $('#subject').html( subject );
-    $('#subject').css( 'display', 'block' );
-    $('#subject_edit').css( 'display', 'none' );
 
-    //. WebSocket で通知
-    socketio.emit( 'change_subject', { room: '<%= room %>', subject: subject } );
+    var card = '<div id="card_' + cnt + '" class="card border-' + color + '" style="cursor: pointer;">'
+      + '<div class="card-body text-' + color + '">'
+      + '<h4 class="card-title"><a href="#" class="btn btn-xs btn-' + color + '" onClick="removeCard(\'card_' + cnt + '\');">&times;</a>' + msg.name + '</h4>'
+      + '</div>'
+      + '<a href="#box_content" id="box_content_' + cnt + '">'
+      + '<img class="card-img-bottom" id="image_' + cnt + '" alt="(image of ' + msg.name + ')" ts="' + msg.timestamp + '" width="315" height="330"/>'
+      + '</a>'
+      + '</div>';
+    $('#cards-'+row).append( card );
+
+    $('#box_content_'+cnt).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( cnt ); } });
   });
+  */
 
   socketio.on( 'init_client_view', function( msg ){
     var socket_id = msg.uuid; //msg.socket_id;
@@ -145,25 +140,23 @@ $(function(){
 
       var color = generateColor( msg.name );
 
-      $('#card-groups').html( '' );
-      $.colorbox.remove();
+      cnt ++;
+      if( cnt > 1 && cnt % <%= columns %> == 1 ){
+        row ++;
+        $('#card-groups').append( '<div class="card-group" id="cards-' + row + '">' );
+      }
 
-      //. カード追加
       var card = '<div id="card_' + socket_id + '" class="card border-' + color + '" style="cursor: pointer;">'
         + '<div class="card-body text-' + color + '">'
         + '<h4 class="card-title"><a href="#" class="btn btn-xs btn-' + color + '" onClick="removeCard(\'card_' + socket_id + '\');">&times;</a>' + msg.name + '</h4>'
         + '</div>'
-        + '<a href="#box_content" id="box_content_' + socket_id + '" title="' + msg.name + '">'
-        //+ '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" ts="' + msg.timestamp + '" width="315" height="330"/>'
-        + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" ts="' + msg.timestamp + '"/>'
+        + '<a href="#box_content" id="box_content_' + socket_id + '">'
+        + '<img class="card-img-bottom" id="image_' + socket_id + '" alt="(image of ' + msg.name + ')" ts="' + msg.timestamp + '" width="315" height="330"/>'
         + '</a>'
         + '</div>';
-      cards.push( card );
+      $('#cards-'+row).append( card );
 
-      //$('#box_content_'+socket_id).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( socket_id ); }, onClosed: function(){ $('#box_content').html(''); } });
-
-      //. カードグループを必要数だけ追加
-      appendCardGroups( '#card-groups', cards.length );
+      $('#box_content_'+socket_id).colorbox({ inline: true, transition: 'none', width: "90%", height: "90%", onOpen: function(){ zoomImage( socket_id ); } });
     }
   });
 
@@ -177,14 +170,6 @@ $(function(){
         $('#image_'+socket_id).prop( 'src', msg.image_src );
         $('#image_'+socket_id).prop( 'title', msg.comment );
         $('#image_'+socket_id).prop( 'ts', msg.timestamp );
-
-        //. 再描画用に記録
-        var img = {
-          src: msg.image_src,
-          title: msg.comment,
-          ts: msg.timestamp
-        };
-        imgs[socket_id] = img;
 
         var zoom_socket_id = $('#zoom_image').attr( 'socket_id' );
         if( zoom_socket_id && zoom_socket_id == socket_id ){
@@ -224,66 +209,49 @@ function generateColor( name ){
 
 function removeCard( card_id ){
   $('#'+card_id).css( 'display', 'none' );
-
-  //. card_id = 'card_XXXXXX';
-  var socket_id = card_id.substr( 6 );
-  if( imgs[socket_id] ){
-    delete imgs[socket_id];
-  }
-
-  var b = true;
-  for( var i = 0; i < cards.length && b; i ++ ){
-    var card = cards[i];
-    if( card.indexOf( 'card_' + socket_id ) > -1 && card.indexOf( 'image_' + socket_id ) > -1 ){
-      cards.splice( i, 1 );
-      b = false;
-    }
-  }
 }
 
 function zoomImage( socket_id ){
-  if( socket_id ){
-    //console.log( 'zoomImage: socket_id = ' + socket_id );
-    $('#box_content').html( '<img id="zoom_image" socket_id="' + socket_id + '" src="' + $('#image_'+socket_id).prop( 'src' ) + '"/>' );
-  }
+  $('#box_content').html( '<img id="zoom_image" socket_id="' + socket_id + '" src="' + $('#image_'+socket_id).prop( 'src' ) + '"/>' );
 }
 
 
-//. num 個の要素をなるべく正方形に近い表形式の card-group 化する
-function appendCardGroups( cardgroups_selector, num ){
-  //. 近づける正方形の一辺の長さ
-  var m = Math.ceil( Math.sqrt( num ) );
-  //. m 個の card-group が必要
-  for( var i = 0; i < m; i ++ ){
-    $(cardgroups_selector).append( '<div class="card-group" id="cards-' + i + '">' );
+function copyCB(){
+  var str = $('#url_tooltiptext').attr( 'data-tooltip' );
+  if( copyClipboard( str ) ){
+    $('#roomname').addClass( 'blink' );
+    setTimeout( function(){
+      $('#roomname').removeClass( 'blink' );
+    }, 500 );
+  }else{
   }
-  //. ( m * m ) の正方形の中に表示する
-  for( var i = 0; i < num; i ++ ){
-    var card = cards[i];
-    var row = Math.floor( i / m );
-    $('#cards-'+row).append( card );
-  }
+}
 
-  //. クラスでまとめて ColorBox の指定
-  $('.card').colorbox({ href: '#box_content', inline: true, transition: 'none', width: "90%", innerHeight: "90%", onOpen: function(){ var socket_id = $(this).prop( 'id' ).substr( 5 ); zoomImage( socket_id ); }, onClosed: function(){ $('#box_content').html(''); } });
+function copyClipboard( str ){
+  //. 空 div と空 pre
+  var tmp = document.createElement( 'div' );
+  var pre = document.createElement( 'pre' );
 
-  if( num % m ){
-    var row = Math.floor( num / m );
-    for( var i = num; i % m > 0; i ++ ){
-      var dummycard = '<div class="card"></div>';
-      $('#cards-'+row).append( dummycard );
-    }
-  }
+  pre.style.webkitUserSelect = 'auto';
+  pre.style.userSelect = 'auto';
+  tmp.appendChild( pre ).textContent = str;
 
-  //. 画像再描画
-  Object.keys( imgs ).forEach( function( socket_id ){
-    var img = imgs[socket_id];
-    //console.log( 'appendCardGroups: socket_id = ' + socket_id, img );
+  //. 画面外へ
+  var s = tmp.style;
+  s.position = 'fixed';
+  s.right = '200%';
 
-    $('#image_'+socket_id).prop( 'src', img.src );
-    $('#image_'+socket_id).prop( 'title', img.title );
-    $('#image_'+socket_id).prop( 'ts', img.ts );
-  });
+  //. body に追加
+  document.body.appendChild( tmp );
+  document.getSelection().selectAllChildren( tmp );
+
+  //. クリップボードにコピー
+  var result = document.execCommand( "copy" );
+
+  //. 要素削除
+  document.body.removeChild( tmp );
+
+  return result;
 }
 </script>
 </body>
