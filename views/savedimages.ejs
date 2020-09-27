@@ -155,13 +155,13 @@ html, body{
 <div class="container">
   <table id="image_table" class="table table-bordered table-striped">
     <thead>
-      <tr><th>#</th><th>image</th><th>name</th><th>comment</th><th>timestamp</th></tr>
+      <tr><th>#</th><th><%= __('common.image') %></th><th><%= __('common.name') %></th><th><%= __('common.comment') %></th><th><%= __('common.datetime') %></th></tr>
     </thead>
     <tbody id="images_table_tbody">
     </tbody>
   </table>
 
-  <button id="selected_images_btn" class="btn btn-primary" onClick="selected_images();">Show Images</button>
+  <button id="selected_images_btn" class="btn btn-primary" onClick="selected_images();"><%= __('common.button.showimages') %></button>
 </div>
 
 <div class="modal bd-example-modal-lg fade" id="imagesModal" tabindex="-1" role="dialog" aria-labbelledby="imagesModal" aria-hidden="true">

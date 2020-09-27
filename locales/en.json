@@ -17,7 +17,11 @@
   "common.button.reset": "Reset",
   "common.button.save": "Save",
   "common.button.post": "Post",
+  "common.button.showimages": "Show Images",
   "common.comment": "Comment",
   "common.history": "History",
+  "common.datetime": "Datetime",
+  "common.image": "Image",
+  "common.name": "Name",
   "dummy": "dummy"
 }

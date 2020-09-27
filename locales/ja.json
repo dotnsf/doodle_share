@@ -17,7 +17,11 @@
   "common.button.reset": "リセット",
   "common.button.save": "保存",
   "common.button.post": "送信",
+  "common.button.showimages": "画像一覧表示",
   "common.comment": "コメント",
   "common.history": "履歴",
+  "common.datetime": "日付時刻",
+  "common.image": "画像",
+  "common.name": "名前",
   "dummy": "dummy"
 }
