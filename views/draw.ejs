@@ -499,6 +499,17 @@ function save(){
       console.log( textStatus + ': ' + errorThrown );
     }
   });
+
+  //. copy to clipboard
+  try{
+    navigator.clipboard.write([
+      new ClipboardItem({
+        'image/png': blob
+      })
+    ]);
+  }catch( err ){
+    console.log( err );
+  }
 }
 
 function undo(){
