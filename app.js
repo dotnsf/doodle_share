@@ -107,6 +107,15 @@ app.get( '/screen', function( req, res ){
   res.render( 'screen', { name: name, room: room, intervalms: settings.intervalms } );
 });
 
+app.get( '/joystick', function( req, res ){
+  var name = req.query.name;
+  if( !name ){ name = '' + ( new Date() ).getTime(); }
+  var room = req.query.room;
+  if( !room ){ room = settings.defaultroom; }
+  var save = ( db ? true : false );
+  res.render( 'joystick', { name: name, room: room, save: save } );
+});
+
 app.get( '/view', function( req, res ){
   var room = req.query.room;
   if( !room ){ room = settings.defaultroom; }
@@ -452,6 +461,6 @@ function sortByTimestamp( a, b ){
 
 
 //app.listen( appEnv.port );
-var port = process.env.PORT || 3000;
+var port = process.env.PORT || 8080;
 http.listen( port );
 console.log( "server starting on " + port + " ..." );

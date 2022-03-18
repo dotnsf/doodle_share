@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8"/>
+<meta charset="utf-8" />
 <title><%= room %></title>
-<script type="text/javascript" src="//code.jquery.com/jquery-2.2.4.min.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
 <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet"/>
 <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
 <link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
+<script src="https://unpkg.com/obniz@3.19.0/obniz.js" crossorigin="anonymous"></script>
 <script src="/socket.io/socket.io.js"></script>
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 
@@ -17,13 +19,13 @@
 <meta name="viewport" content="width=device-width,initial-scale=1"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="black"/>
-<meta name="apple-mobile-web-app-title" content="AirPen Share"/>
+<meta name="apple-mobile-web-app-title" content="Joystick with Obniz"/>
 
 <!-- // OGP tags -->
 <meta property="og:title" content="Doodle Share"/>
 <meta property="og:type" content="website"/>
-<meta property="og:url" content="https://doodle-share.au-syd.mybluemix.net/"/>
-<meta property="og:image" content="https://doodle-share.au-syd.mybluemix.net/icon.png"/>
+<meta property="og:url" content="https://doodle-share.mybluemix.net/"/>
+<meta property="og:image" content="https://doodle-share.mybluemix.net/icon.png"/>
 <meta property="og:site_name" content="Doodle Share"/>
 <meta property="og:description" content="Doodle Share : リアルタイムお絵描き共有サービス"/>
 <!-- OGP tags // -->
@@ -32,8 +34,8 @@
 <meta property="twitter:card" content="summary"/>
 <meta property="twitter:site" content="@dotnsf"/>
 <meta property="twitter:creator" content="@dotnsf"/>
-<meta property="twitter:url" content="https://doodle-share.au-syd.mybluemix.net/"/>
-<meta property="twitter:image" content="https://doodle-share.au-syd.mybluemix.net/icon.png"/>
+<meta property="twitter:url" content="https://doodle-share.mybluemix.net/"/>
+<meta property="twitter:image" content="https://doodle-share.mybluemix.net/icon.png"/>
 <meta property="twitter:title" content="Doodle Share"/>
 <meta property="twitter:description" content="Doodle Share : リアルタイムお絵描き共有サービス"/>
 <!-- Twitter Card // -->
@@ -45,9 +47,6 @@ html, body{
   font-size: 20px;
   color: #333;
 }
-body{
-  background-color: #ffffcc;
-}
 #mycanvas{
   border: 1px solid #333;
 }
@@ -57,6 +56,8 @@ body{
 </style>
 </head>
 <body>
+<div id="obniz-debug"></div>
+
 <h3 id="name"><%= name %></h3>
 
 <select id="select_color" name="select_color">
@@ -131,10 +132,81 @@ var stroke = null; //. { color: color, width: width, xys: [] }
 var backgroundcolor = null;
 
 var borderWidth = 1;
-var isTouch = false;
-var touchData = [];
+var isPush = false;
 
-//. 参考: https://gist.github.com/Cartman0/436459b9b85cfdd1ca9c
+var mx = 0;
+var my = 0;
+
+var obnizid = '<%= name %>';
+var obniz = null;
+if( obnizid ){
+  obniz = new Obniz( obnizid );
+  obniz.onconnect = async () => {
+    //. Joystick
+    var joystick = obniz.wired( "Grove_JoyStick", { scl:0, sda:1, vcc:2, gnd:3, grove: obniz.grove0 } );
+    while( true ){
+      var x = await joystick.getXWait()
+      var y = await joystick.getYWait()
+      var z = await joystick.isPressedWait();
+      //console.log( `(${x},${y}) : ${z}` );
+      //socketio.emit( 'control_client', { room: 'default', x: x, y: y, z: z, ts: ts } );
+
+      if( x < 5 && mx < canvas_width ){
+        mx += 10;
+      }else if( x < 55 && mx < canvas_width ){
+        mx += 5;
+      }else if( x < 100 && mx < canvas_width ){
+        mx ++;
+      }else if( x > 250 && mx > 0 ){
+        mx -= 10;
+      }else if( x > 200 && mx > 0 ){
+        mx -= 5;
+      }else if( x > 155 && mx > 0 ){
+        mx --;
+      }
+      if( y < 5 && my > 0 ){
+        my -= 10;
+      }else if( y < 55 && my > 0 ){
+        my -= 5;
+      }else if( y < 100 && my > 0 ){
+        my --;
+      }else if( y > 250 && my < canvas_height ){
+        my += 10;
+      }else if( y > 200 && my < canvas_height ){
+        my += 5;
+      }else if( y > 155 && my < canvas_height ){
+        my ++;
+      }
+      //console.log( ` -> [${mx},${my} : ${isPush}]` );
+      redrawCanvas();
+
+      if( !isPush && z ){
+        pushStart();
+      }else if( isPush && !z ){
+        pushEnd();
+      }
+      isPush = z;
+
+      if( isPush ){
+        //. 描画
+        var stroke_color = $('#select_color').val();
+        var stroke_width = parseInt( $('#select_linewidth').val() );
+
+        if( stroke ){
+          stroke.xys.push( [ mx, my ] );
+        }
+      }
+
+      //. 標準の移動
+      drawTarget();
+
+      await obniz.wait( 50 );
+    }
+  }
+}else{
+  console.log( "access has to be done with obnizid=XXXX-XXXX parameter" );
+}
+
 $(function(){
   //. ヒストリバック無効化
   if( window.history && window.history.pushState ){
@@ -163,6 +235,8 @@ $(function(){
   init();
 });
 
+var canvas_width = 0;
+var canvas_height = 0;
 function init(){
   $('#comment').html( '' );
   $('#cdiv').html( '<canvas width="80%" height="50%" id="mycanvas"></canvas>' );
@@ -173,26 +247,10 @@ function init(){
   }
   var ctx = canvas.getContext( '2d' );
 
-  if( window.DeviceOrientationEvent ){
-    //. iOS 13 対応 : https://bagelee.com/webar-vr/ios13-webar-webvr/
-    //.             : https://qiita.com/nakakaz11/items/a9be602874bd54819a18
-    if( DeviceOrientationEvent.requestPermission && typeof DeviceOrientationEvent.requestPermission === 'function' ){
-      DeviceOrientationEvent.requestPermission().then( function( response ){
-        if( response === 'granted' ){
-          window.addEventListener( "deviceorientation", deviceOrientation );
-        }
-      }).catch( function( e ){
-        console.log( e );
-      });
-    }else{
-      window.addEventListener( "deviceorientation", deviceOrientation );
-    }
-  }
-
-  if( window.TouchEvent ){
-    canvas.addEventListener( "touchstart", touchStart );
-    canvas.addEventListener( "touchend", touchEnd );
-  }
+  var browserWidth = window.innerWidth;
+  var browserHeight = window.innerHeight;
+  canvas.width = canvas_width = browserWidth * 0.8;
+  canvas.height = canvas_height = browserHeight * 0.6;
 
   $('#select_color').change( function(){
     var color = $(this).val();
@@ -208,29 +266,19 @@ function init(){
 
   //. リサイズ時に Canvas サイズを変更する
   $(window).on( 'load resize', function(){
+    var browserWidth = window.innerWidth;
+    var browserHeight = window.innerHeight;
+    mx = ( browserWidth * 0.8 ) / 2;
+    my = ( browserHeight * 0.6 ) / 2;
+
     resized();
   });
 
-  //. スクロール禁止
-  /*
-  $(window).on('touchmove.noScroll', function( e ){
-    e.preventDefault();
-  });
-  */
   var movefun = function( event ){
     event.preventDefault();
   }
-  window.addEventListener( 'touchmove', movefun, { passive: false } );
-
-  //. #12
-  socketio.on( 'change_subject_view', function( msg ){
-    console.log( 'change_subject_view', msg );
-    $('#name').html( msg.subject );
-  });
 }
 
-var canvas_width = 0;
-var canvas_height = 0;
 function resized(){
   var browserWidth = window.innerWidth;
   var browserHeight = window.innerHeight;
@@ -246,19 +294,15 @@ function resized(){
       room: '<%= room %>',
       name: name,
       timestamp: ( new Date() ).getTime(),
-      width: canvas_width,
-      height: canvas_height
+      width: canvas.width,
+      height: canvas.height
     };
     socketio.json.emit( 'init_client', msg );
   }
 }
 
-function touchStart( e ){
-  var obj = e.changedTouches[0];
-  var touchY = obj.pageY;
-
-  isTouch = true;
-  touchData = [];
+function pushStart(){
+  isPush = true;
 
   stroke = {};
   stroke.color = $('#select_color').val();
@@ -266,15 +310,15 @@ function touchStart( e ){
   stroke.xys = [];
 }
 
-function touchEnd( e ){
-  isTouch = false;
+function pushEnd(){
+  isPush = false;
 
-  if( touchData && touchData.length > 0 ){
+  if( stroke ){
     //. 描画
     var canvas = document.getElementById( "mycanvas" );
     var ctx = canvas.getContext( "2d" );
 
-    var color = $('#select_color').val();
+    var color = stroke.color;
     if( color == 'transparent' ){
       ctx.globalCompositeOperation = 'destination-out';
     }else{
@@ -283,11 +327,11 @@ function touchEnd( e ){
 
     //. 描画
     ctx.beginPath();
-    ctx.lineWidth = parseInt( $('#select_linewidth').val() );
+    ctx.lineWidth = stroke.width;
     ctx.lineCap = 'round';
-    ctx.moveTo( 2 * touchData[0]['lr'] + canvas_width / 2, -2 * touchData[0]['fb'] + canvas_height / 2 );
-    for( var i = 1; i < touchData.length; i ++ ){
-      ctx.lineTo( 2 * touchData[i]['lr'] + canvas_width / 2, -2 * touchData[i]['fb'] + canvas_height / 2 );
+    ctx.moveTo( stroke.xys[0][0], stroke.xys[0][1] );
+    for( var i = 1; i < stroke.xys.length; i ++ ){
+      ctx.lineTo( stroke.xys[i][0], stroke.xys[i][1] );
       if( color != 'transparent' ){
         ctx.strokeStyle = color;
       }
@@ -296,37 +340,11 @@ function touchEnd( e ){
 
     sendImage();
 
-    touchData = [];
-
-    if( stroke ){
-      undos.push( stroke );
-      $('#undo_btn').prop( 'disabled', false );
-      stroke = null;
-      redos = [];
-      $('#redo_btn').prop( 'disabled', true );
-    }
-  }
-}
-
-function deviceOrientation( e ){
-  if( isTouch ){
-    var gamma = e.gamma; //. Left/Right
-    var beta = e.beta;   //. Front/Back
-    //var alpha = e.alpha; //. Direction
-
-    var abg = {};
-    //abg['dir'] = alpha;
-    abg['fb'] = beta;
-    abg['lr'] = gamma;
-    $('#abg_lr').html( gamma );
-    $('#abg_fb').html( beta );
-    //$('#abg_dir').html( alpha );
-
-    touchData.push( abg );
-
-    if( stroke ){
-      stroke.xys.push( [ 2 * abg['lr'] + canvas_width / 2, -2 * abg['fb'] + canvas_height / 2 ] );
-    }
+    undos.push( stroke );
+    $('#undo_btn').prop( 'disabled', false );
+    stroke = null;
+    redos = [];
+    $('#redo_btn').prop( 'disabled', true );
   }
 }
 
@@ -549,6 +567,39 @@ function sendImage(){
   };
   socketio.json.emit( 'image_client', msg );
 }
+
+function drawTarget(){
+  //. ( mx, my ) にターゲットを描画
+  var canvas = document.getElementById( 'mycanvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+  var ctx = canvas.getContext( '2d' );
+
+  var color = $('#select_color').val();
+  if( color == 'transparent' ){
+    ctx.globalCompositeOperation = 'destination-out';
+  }else{
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  ctx.beginPath();
+  ctx.lineWidth = 1;
+  ctx.lineCap = 'round';
+  ctx.moveTo( mx, my - 15 );
+  ctx.lineTo( mx, my - 5 );
+  ctx.moveTo( mx, my + 15 );
+  ctx.lineTo( mx, my + 5 );
+  ctx.moveTo( mx - 15, my );
+  ctx.lineTo( mx - 5, my );
+  ctx.moveTo( mx + 15, my );
+  ctx.lineTo( mx + 5, my );
+  if( color != 'transparent' ){
+    ctx.strokeStyle = color;
+  }
+  ctx.stroke();
+}
 </script>
+
 </body>
 </html>
