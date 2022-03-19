@@ -24,8 +24,8 @@
 <!-- // OGP tags -->
 <meta property="og:title" content="Doodle Share"/>
 <meta property="og:type" content="website"/>
-<meta property="og:url" content="https://doodle-share.mybluemix.net/"/>
-<meta property="og:image" content="https://doodle-share.mybluemix.net/icon.png"/>
+<meta property="og:url" content="https://doodle-share.herokuapp.com/"/>
+<meta property="og:image" content="https://doodle-share.herokuapp.com/icon.png"/>
 <meta property="og:site_name" content="Doodle Share"/>
 <meta property="og:description" content="Doodle Share : リアルタイムお絵描き共有サービス"/>
 <!-- OGP tags // -->
@@ -34,8 +34,8 @@
 <meta property="twitter:card" content="summary"/>
 <meta property="twitter:site" content="@dotnsf"/>
 <meta property="twitter:creator" content="@dotnsf"/>
-<meta property="twitter:url" content="https://doodle-share.mybluemix.net/"/>
-<meta property="twitter:image" content="https://doodle-share.mybluemix.net/icon.png"/>
+<meta property="twitter:url" content="https://doodle-share.herokuapp.com/"/>
+<meta property="twitter:image" content="https://doodle-share.herokuapp.com/icon.png"/>
 <meta property="twitter:title" content="Doodle Share"/>
 <meta property="twitter:description" content="Doodle Share : リアルタイムお絵描き共有サービス"/>
 <!-- Twitter Card // -->
@@ -92,17 +92,19 @@ html, body{
 <input type="button" class="btn btn-xs btn-secondary p-0" id="setbg_btn" value="<%= __('common.button.background') %>" onClick="setBG();"/>
 <!--
 <a href="#" class="btn btn-xs btn-secondary p-0" id="setbg_btn" onClick="setBG();"/><i class="far fa-image"></i></a>
--->
 <a href="#" class="btn btn-xs btn-secondary p-0" data-toggle="modal" data-target="#commentModal" id="comment_btn"><i class="fas fa-comment-dots"></i></a>
+-->
 
 <div id="canvas_div">
   <div id="cdiv"></div>
 
+  <!--
   <br/>
   <input type="button" class="btn btn-xs" id="undo_btn" value="<" onClick="undo();" disabled="disabled"/>
   <input type="button" class="btn btn-xs btn-warning" value="<%= __('common.button.reset') %>" onClick="resetCanvas();"/>
   <input type="button" class="btn btn-xs btn-primary" id="save_btn" value="<%= __('common.button.save') %>" onClick="save();"/>
   <input type="button" class="btn btn-xs" id="redo_btn" value=">" onClick="redo();" disabled="disabled"/>
+  -->
 </div>
 
 <div class="modal bd-example-modal-lg fade" id="commentModal" tabindex="-1" role="dialog" aria-labbelledby="commentModal" aria-hidden="true">
@@ -126,16 +128,18 @@ var uuid = generateUUID();
 var socketio = null;
 
 var base_url = location.origin + '/';
-var undos = [];
-var redos = [];
-var stroke = null; //. { color: color, width: width, xys: [] }
 var backgroundcolor = null;
 
 var borderWidth = 1;
 var isPush = false;
+var onGame = false;
 
 var mx = 0;
 var my = 0;
+var score = 0;
+var loopcount = 0;
+var Zs = [];
+var ystep = 1;
 
 var obnizid = '<%= name %>';
 var obniz = null;
@@ -148,59 +152,78 @@ if( obnizid ){
       var x = await joystick.getXWait()
       var y = await joystick.getYWait()
       var z = await joystick.isPressedWait();
-      //console.log( `(${x},${y}) : ${z}` );
-      //socketio.emit( 'control_client', { room: 'default', x: x, y: y, z: z, ts: ts } );
 
-      if( x < 5 && mx < canvas_width ){
+      if( x < 5 && mx + 10 < canvas_width ){
         mx += 10;
-      }else if( x < 55 && mx < canvas_width ){
+      }else if( x < 55 && mx + 5 < canvas_width ){
         mx += 5;
-      }else if( x < 100 && mx < canvas_width ){
+      }else if( x < 100 && mx + 1 < canvas_width ){
         mx ++;
-      }else if( x > 250 && mx > 0 ){
+      }else if( x > 250 && mx - 10 > 0 ){
         mx -= 10;
-      }else if( x > 200 && mx > 0 ){
+      }else if( x > 200 && mx - 5 > 0 ){
         mx -= 5;
-      }else if( x > 155 && mx > 0 ){
+      }else if( x > 155 && mx - 1 > 0 ){
         mx --;
       }
-      if( y < 5 && my > 0 ){
+      if( y < 5 && my - 10 > 0 ){
         my -= 10;
-      }else if( y < 55 && my > 0 ){
+      }else if( y < 55 && my - 5 > 0 ){
         my -= 5;
-      }else if( y < 100 && my > 0 ){
+      }else if( y < 100 && my - 1 > 0 ){
         my --;
-      }else if( y > 250 && my < canvas_height ){
+      }else if( y > 250 && my + 10 < canvas_height ){
         my += 10;
-      }else if( y > 200 && my < canvas_height ){
+      }else if( y > 200 && my + 5 < canvas_height ){
         my += 5;
-      }else if( y > 155 && my < canvas_height ){
+      }else if( y > 155 && my + 1 < canvas_height ){
         my ++;
       }
       //console.log( ` -> [${mx},${my} : ${isPush}]` );
+
+      if( Zs.length ){
+        for( var i = 0; i < Zs.length; i ++ ){
+          //. Zs[i] = { x: 100, y: 100, num: 8 };
+          Zs[i].y += ystep;
+          if( Zs[i].y >= canvas_height ){
+            onGame = false;
+            //score -= Zs[i].num * 10;
+            //if( score < 0 ){ score = 0; }
+            Zs.splice( i, 1 );
+          }
+        }
+      }
+
       redrawCanvas();
 
       if( !isPush && z ){
+        if( !onGame ){
+          onGame = true;
+          score = 0;
+          ystep = 1;
+        }
         pushStart();
       }else if( isPush && !z ){
         pushEnd();
       }
-      isPush = z;
-
-      if( isPush ){
-        //. 描画
-        var stroke_color = $('#select_color').val();
-        var stroke_width = parseInt( $('#select_linewidth').val() );
-
-        if( stroke ){
-          stroke.xys.push( [ mx, my ] );
-        }
-      }
+      //isPush = z;
 
       //. 標準の移動
       drawTarget();
 
       await obniz.wait( 50 );
+      loopcount ++;
+      if( loopcount % 20 == 0 ){
+        sendImage();
+      }
+
+      //. 敵追加
+      if( onGame && Zs.length == 0 ){
+        var num = Math.floor( Math.random() * 9 ) + 1;
+        var x = Math.floor( Math.random() * ( canvas_width - 40 ) ) + 20;
+        var y = 40;
+        Zs.push( { x: x, y: y, num: num } );
+      }
     }
   }
 }else{
@@ -284,8 +307,18 @@ function resized(){
   var browserHeight = window.innerHeight;
   var canvas = document.getElementById( 'mycanvas' );
   if( canvas && canvas.getContext ){
-    canvas.width = canvas_width = browserWidth * 0.8;
-    canvas.height = canvas_height = browserHeight * 0.6;
+    canvas_width = Math.floor( browserWidth * 0.8 );
+    canvas_height = Math.floor( browserHeight * 0.6 );
+
+    //. ここだと何度も実行されてしまって想定通りにならない
+    //mx = canvas_width / 2;
+    //my = canvas_height / 2;
+    if( canvas.width != canvas_width || canvas.height != canvas_height ){
+      canvas.width = canvas_width;
+      canvas.height = canvas_height;
+      mx = canvas_width / 2;
+      my = canvas_height / 2;
+    }
 
     //. 初期化を通知
     var name = $('#name').text();
@@ -303,49 +336,12 @@ function resized(){
 
 function pushStart(){
   isPush = true;
-
-  stroke = {};
-  stroke.color = $('#select_color').val();
-  stroke.width = parseInt( $('#select_linewidth').val() );
-  stroke.xys = [];
 }
 
 function pushEnd(){
   isPush = false;
 
-  if( stroke ){
-    //. 描画
-    var canvas = document.getElementById( "mycanvas" );
-    var ctx = canvas.getContext( "2d" );
-
-    var color = stroke.color;
-    if( color == 'transparent' ){
-      ctx.globalCompositeOperation = 'destination-out';
-    }else{
-      ctx.globalCompositeOperation = 'source-over';
-    }
-
-    //. 描画
-    ctx.beginPath();
-    ctx.lineWidth = stroke.width;
-    ctx.lineCap = 'round';
-    ctx.moveTo( stroke.xys[0][0], stroke.xys[0][1] );
-    for( var i = 1; i < stroke.xys.length; i ++ ){
-      ctx.lineTo( stroke.xys[i][0], stroke.xys[i][1] );
-      if( color != 'transparent' ){
-        ctx.strokeStyle = color;
-      }
-    }
-    ctx.stroke();
-
-    sendImage();
-
-    undos.push( stroke );
-    $('#undo_btn').prop( 'disabled', false );
-    stroke = null;
-    redos = [];
-    $('#redo_btn').prop( 'disabled', true );
-  }
+  //sendImage();
 }
 
 function resetCanvas( no_reset_unredo ){
@@ -353,12 +349,10 @@ function resetCanvas( no_reset_unredo ){
   resized();
 
   if( !no_reset_unredo ){
-    undos = [];
-    redos = [];
     backgroundcolor = null;
 
     //. リセットを通知
-    sendImage();
+    //sendImage();
   }
 }
 
@@ -408,32 +402,6 @@ function save(){
   });
 }
 
-function undo(){
-  if( undos && undos.length > 0 ){
-    var last_stroke = undos.pop();
-    if( undos.length == 0 ){
-      $('#undo_btn').prop( 'disabled', true );
-    }
-    redos.push( last_stroke );
-    $('#redo_btn').prop( 'disabled', false );
-
-    redrawCanvas();
-  }
-}
-
-function redo(){
-  if( redos && redos.length > 0 ){
-    var last_stroke = redos.pop();
-    if( redos.length == 0 ){
-      $('#redo_btn').prop( 'disabled', true );
-    }
-    undos.push( last_stroke );
-    $('#undo_btn').prop( 'disabled', false );
-
-    redrawCanvas();
-  }
-}
-
 function setBG(){
   var color = $('#select_color').val();
   if( color ){
@@ -447,54 +415,21 @@ function setBG(){
 }
 
 function redrawCanvas(){
-  if( undos && undos.length >= 0 ){
-    resetCanvas( true );
+  resetCanvas( true );
 
-    if( backgroundcolor ){
-      var canvas = document.getElementById( 'mycanvas' );
-      if( !canvas || !canvas.getContext ){
-        return false;
-      }
-      var ctx = canvas.getContext( '2d' );
-
-      //. 全体をベタ塗り
-      ctx.beginPath();
-      ctx.fillStyle = backgroundcolor; //"rgb( 255, 255, 255 )";
-      ctx.fillRect( 0, 0, canvas.width, canvas.height );
-      ctx.stroke();
+  if( backgroundcolor ){
+    var canvas = document.getElementById( 'mycanvas' );
+    if( !canvas || !canvas.getContext ){
+      return false;
     }
+    var ctx = canvas.getContext( '2d' );
 
-    for( var i = 0; i < undos.length; i ++ ){
-      var stroke = undos[i];
-
-      for( var j = 1; j < stroke.xys.length; j ++ ){
-        var canvas = document.getElementById( 'mycanvas' );
-        if( !canvas || !canvas.getContext ){
-          return false;
-        }
-        var ctx = canvas.getContext( '2d' );
-
-        var color = stroke.color;
-        if( color == 'transparent' ){
-          ctx.globalCompositeOperation = 'destination-out';
-        }else{
-          ctx.globalCompositeOperation = 'source-over';
-        }
-
-        ctx.beginPath();
-        ctx.lineWidth = stroke.width;
-        ctx.lineCap = 'round';
-        ctx.moveTo( stroke.xys[j-1][0], stroke.xys[j-1][1] );
-        ctx.lineTo( stroke.xys[j][0], stroke.xys[j][1] );
-        if( color != 'transparent' ){
-          ctx.strokeStyle = color;
-        }
-        ctx.stroke();
-      }
-    }
+    //. 全体をベタ塗り
+    ctx.beginPath();
+    ctx.fillStyle = backgroundcolor; //"rgb( 255, 255, 255 )";
+    ctx.fillRect( 0, 0, canvas.width, canvas.height );
+    ctx.stroke();
   }
-
-  sendImage();
 }
 
 function generateUUID(){
@@ -598,6 +533,57 @@ function drawTarget(){
     ctx.strokeStyle = color;
   }
   ctx.stroke();
+
+  //. スコア
+  ctx.font = "20px serif";
+  if( color == 'transparent' ){
+    ctx.globalCompositeOperation = 'destination-out';
+  }else{
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.fillStyle = color;
+  }
+  var text = ( '00000' + score ).slice( -5 );
+  var measure = ctx.measureText( text );
+  ctx.fillText( text, ( canvas.width - measure.width ) / 2, 20 );
+
+  //. 敵
+  ctx.font = "40px serif";
+  for( var i = 0; i < Zs.length; i ++ ){
+    var z = '' + Zs[i].num;
+    ctx.fillText( z, Zs[i].x, Zs[i].y );
+  }
+
+  //. レーザー描画
+  if( isPush ){
+    ctx.beginPath();
+
+    ctx.moveTo( 0, canvas_height );
+    ctx.lineTo( mx, my );
+    ctx.moveTo( canvas_width, canvas_height );
+    ctx.lineTo( mx, my );
+    if( color != 'transparent' ){
+      ctx.strokeStyle = color;
+    }
+    ctx.stroke();
+
+    //. 判定
+    var b = false;
+    for( var i = 0; i < Zs.length && !b; i ++ ){
+      if( Zs[i].x <= mx && mx <= Zs[i].x + 40 && Zs[i].y >= my && my >= Zs[i].y - 40 ){
+        score += Zs[i].num * 10;
+        Zs.splice( i, 1 );
+        i = Zs.length;
+        b = true;
+
+        ystep = Math.floor( score / 200 ) + 1;
+      }
+    }
+    if( !b ){
+      if( score > 0 ){
+        score -= 10;
+      }
+    }
+  }
 }
 </script>
 
