@@ -80,6 +80,15 @@ $(function(){
       $('#room').val( unescape( str[1] ) );
     }
   });
+
+  $('#ui').change( function(){
+    var v = $(this).val();
+    if( v == 'joystick' ){
+      $('#name').attr( 'placeholder', 'Obniz ID ..' );
+    }else{
+      $('#name').attr( 'placeholder', 'Your name ..' );
+    }
+  });
 });
 
 function startDrawing(){
