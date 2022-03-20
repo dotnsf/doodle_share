@@ -214,7 +214,7 @@ if( obnizid ){
 
       await obniz.wait( 50 );
       loopcount ++;
-      if( loopcount % 20 == 0 ){
+      if( loopcount % 20 == 0 ){  //. １秒おきにキャンバスを画像化して送信
         sendImage();
       }
 
@@ -242,11 +242,6 @@ $(function(){
       }
     });
   }
-
-  //. モーダル終了時
-  $('#commentModal').on( 'hidden.bs.modal', function(){
-    sendImage();
-  });
 
 <% if( !save ){ %>
   $('#save_btn').addClass( 'btn-secondary' );
@@ -337,11 +332,11 @@ function resized(){
 
 function pushStart(){
   isPush = true;
+  sendImage();
 }
 
 function pushEnd(){
   isPush = false;
-
   //sendImage();
 }
 
