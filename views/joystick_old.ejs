@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title><%= room %></title>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<script src="//code.jquery.com/jquery-3.2.1.min.js"></script>
+<link href="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/css/bootstrap.min.css" rel="stylesheet"/>
+<script src="//maxcdn.bootstrapcdn.com/bootstrap/4.5.0/js/bootstrap.min.js"></script>
+<link href="//use.fontawesome.com/releases/v5.8.1/css/all.css" rel="stylesheet"/>
+<script src="https://unpkg.com/obniz@3.19.0/obniz.js" crossorigin="anonymous"></script>
+<script src="/socket.io/socket.io.js"></script>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+
+<link rel="shortcut icon" href="/icon.png" type="image/png"/>
+<link rel="icon" href="/icon.png" type="image/png"/>
+<link rel="apple-touch-icon" href="/icon.png"/>
+
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta name="apple-mobile-web-app-status-bar-style" content="black"/>
+<meta name="apple-mobile-web-app-title" content="Joystick with Obniz"/>
+
+<!-- // OGP tags -->
+<meta property="og:title" content="Doodle Share"/>
+<meta property="og:type" content="website"/>
+<meta property="og:url" content="https://doodle-share.mybluemix.net/"/>
+<meta property="og:image" content="https://doodle-share.mybluemix.net/icon.png"/>
+<meta property="og:site_name" content="Doodle Share"/>
+<meta property="og:description" content="Doodle Share : リアルタイムお絵描き共有サービス"/>
+<!-- OGP tags // -->
+
+<!-- // Twitter Card -->
+<meta property="twitter:card" content="summary"/>
+<meta property="twitter:site" content="@dotnsf"/>
+<meta property="twitter:creator" content="@dotnsf"/>
+<meta property="twitter:url" content="https://doodle-share.mybluemix.net/"/>
+<meta property="twitter:image" content="https://doodle-share.mybluemix.net/icon.png"/>
+<meta property="twitter:title" content="Doodle Share"/>
+<meta property="twitter:description" content="Doodle Share : リアルタイムお絵描き共有サービス"/>
+<!-- Twitter Card // -->
+
+<style type="text/css">
+html, body{
+  text-align: center;
+  background-color: #fafafa;
+  font-size: 20px;
+  color: #333;
+}
+#mycanvas{
+  border: 1px solid #333;
+}
+#comment{
+  width: 100%;
+}
+</style>
+</head>
+<body>
+<div id="obniz-debug"></div>
+
+<h3 id="name"><%= name %></h3>
+
+<select id="select_color" name="select_color">
+  <option style="color:black;" value="transparent"><%= __('common.color.transparent') %></option>
+  <option style="color:black;" value="black" selected="selected"><%= __('common.color.black') %></option>
+  <option style="color:lightgray;" value="white"><%= __('common.color.white') %></option>
+  <option style="color:red;" value="red"><%= __('common.color.red') %></option>
+  <option style="color:blue;" value="blue"><%= __('common.color.blue') %></option>
+  <option style="color:green;" value="green"><%= __('common.color.green') %></option>
+  <option style="color:yellow;" value="yellow"><%= __('common.color.yellow') %></option>
+  <option style="color:cyan;" value="cyan"><%= __('common.color.cyan') %></option>
+  <option style="color:magenta;" value="magenta"><%= __('common.color.magenta') %></option>
+  <option style="color:gray;" value="gray"><%= __('common.color.gray') %></option>
+  <option style="color:#ef8f9c;" value="#ef8f9c"><%= __('common.color.pink') %></option>
+  <option style="color:#ead2ad;" value="#ead2ad"><%= __('common.color.beige') %></option>
+  <option style="color:#7c6035;" value="#7c6035"><%= __('common.color.brown') %></option>
+</select>
+
+<select id="select_linewidth" name="select_linewidth">
+  <option value="1">1</option>
+  <option value="2">2</option>
+  <option value="3">3</option>
+  <option value="4">4</option>
+  <option value="5" selected="selected">5</option>
+  <option value="6">6</option>
+  <option value="7">7</option>
+  <option value="8">8</option>
+  <option value="9">9</option>
+  <option value="10">10</option>
+</select>
+
+<input type="button" class="btn btn-xs btn-secondary p-0" id="setbg_btn" value="<%= __('common.button.background') %>" onClick="setBG();"/>
+<!--
+<a href="#" class="btn btn-xs btn-secondary p-0" id="setbg_btn" onClick="setBG();"/><i class="far fa-image"></i></a>
+-->
+<a href="#" class="btn btn-xs btn-secondary p-0" data-toggle="modal" data-target="#commentModal" id="comment_btn"><i class="fas fa-comment-dots"></i></a>
+
+<div id="canvas_div">
+  <div id="cdiv"></div>
+
+  <br/>
+  <input type="button" class="btn btn-xs" id="undo_btn" value="<" onClick="undo();" disabled="disabled"/>
+  <input type="button" class="btn btn-xs btn-warning" value="<%= __('common.button.reset') %>" onClick="resetCanvas();"/>
+  <input type="button" class="btn btn-xs btn-primary" id="save_btn" value="<%= __('common.button.save') %>" onClick="save();"/>
+  <input type="button" class="btn btn-xs" id="redo_btn" value=">" onClick="redo();" disabled="disabled"/>
+</div>
+
+<div class="modal bd-example-modal-lg fade" id="commentModal" tabindex="-1" role="dialog" aria-labbelledby="commentModal" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title" id="commentModalLabel"><%= __('common.comment') %></h4>
+      </div>
+      <div class="modal-body" id="commentmodal-body">
+        <textarea id="comment"></textarea>
+      </div>
+      <div class="modal-footer btn-center">
+        <button type="button" class="btn btn-primary modal_button" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+var uuid = generateUUID();
+var socketio = null;
+
+var base_url = location.origin + '/';
+var undos = [];
+var redos = [];
+var stroke = null; //. { color: color, width: width, xys: [] }
+var backgroundcolor = null;
+
+var borderWidth = 1;
+var isPush = false;
+
+var mx = 0;
+var my = 0;
+
+var obnizid = '<%= name %>';
+var obniz = null;
+if( obnizid ){
+  obniz = new Obniz( obnizid );
+  obniz.onconnect = async () => {
+    //. Joystick
+    var joystick = obniz.wired( "Grove_JoyStick", { scl:0, sda:1, vcc:2, gnd:3, grove: obniz.grove0 } );
+    while( true ){
+      var x = await joystick.getXWait()
+      var y = await joystick.getYWait()
+      var z = await joystick.isPressedWait();
+      //console.log( `(${x},${y}) : ${z}` );
+      //socketio.emit( 'control_client', { room: 'default', x: x, y: y, z: z, ts: ts } );
+
+      if( x < 5 && mx < canvas_width ){
+        mx += 10;
+      }else if( x < 55 && mx < canvas_width ){
+        mx += 5;
+      }else if( x < 100 && mx < canvas_width ){
+        mx ++;
+      }else if( x > 250 && mx > 0 ){
+        mx -= 10;
+      }else if( x > 200 && mx > 0 ){
+        mx -= 5;
+      }else if( x > 155 && mx > 0 ){
+        mx --;
+      }
+      if( y < 5 && my > 0 ){
+        my -= 10;
+      }else if( y < 55 && my > 0 ){
+        my -= 5;
+      }else if( y < 100 && my > 0 ){
+        my --;
+      }else if( y > 250 && my < canvas_height ){
+        my += 10;
+      }else if( y > 200 && my < canvas_height ){
+        my += 5;
+      }else if( y > 155 && my < canvas_height ){
+        my ++;
+      }
+      //console.log( ` -> [${mx},${my} : ${isPush}]` );
+      redrawCanvas();
+
+      if( !isPush && z ){
+        pushStart();
+      }else if( isPush && !z ){
+        pushEnd();
+      }
+      isPush = z;
+
+      if( isPush ){
+        //. 描画
+        var stroke_color = $('#select_color').val();
+        var stroke_width = parseInt( $('#select_linewidth').val() );
+
+        if( stroke ){
+          stroke.xys.push( [ mx, my ] );
+        }
+      }
+
+      //. 標準の移動
+      drawTarget();
+
+      await obniz.wait( 50 );
+    }
+  }
+}else{
+  console.log( "access has to be done with obnizid=XXXX-XXXX parameter" );
+}
+
+$(function(){
+  //. ヒストリバック無効化
+  if( window.history && window.history.pushState ){
+    history.pushState( "nohb", null, null );
+    $(window).on( "popState", function( evt ){
+      if( !event.originalEvent.state ){
+        history.pushState( "nohb", null, null );
+        return;
+      }
+    });
+  }
+
+  //. モーダル終了時
+  $('#commentModal').on( 'hidden.bs.modal', function(){
+    sendImage();
+  });
+
+<% if( !save ){ %>
+  $('#save_btn').addClass( 'btn-secondary' );
+  $('#save_btn').prop( 'disabled', true );
+<% } %>
+
+
+  socketio = io.connect();
+
+  init();
+});
+
+var canvas_width = 0;
+var canvas_height = 0;
+function init(){
+  $('#comment').html( '' );
+  $('#cdiv').html( '<canvas width="80%" height="50%" id="mycanvas"></canvas>' );
+
+  var canvas = document.getElementById( 'mycanvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+  var ctx = canvas.getContext( '2d' );
+
+  var browserWidth = window.innerWidth;
+  var browserHeight = window.innerHeight;
+  canvas.width = canvas_width = browserWidth * 0.8;
+  canvas.height = canvas_height = browserHeight * 0.6;
+
+  $('#select_color').change( function(){
+    var color = $(this).val();
+    if( color == 'white' ){
+      color = 'lightgray';
+    }else if( color == 'transparent' ){
+      color = 'black';
+    }
+    $(this).css( { 'color': color } );
+    $('#select_linewidth').css( { 'color': color } );
+    $('#setbg_btn').css( { 'background': color } );
+  });
+
+  //. リサイズ時に Canvas サイズを変更する
+  $(window).on( 'load resize', function(){
+    var browserWidth = window.innerWidth;
+    var browserHeight = window.innerHeight;
+    mx = ( browserWidth * 0.8 ) / 2;
+    my = ( browserHeight * 0.6 ) / 2;
+
+    resized();
+  });
+
+  var movefun = function( event ){
+    event.preventDefault();
+  }
+}
+
+function resized(){
+  var browserWidth = window.innerWidth;
+  var browserHeight = window.innerHeight;
+  var canvas = document.getElementById( 'mycanvas' );
+  if( canvas && canvas.getContext ){
+    canvas.width = canvas_width = browserWidth * 0.8;
+    canvas.height = canvas_height = browserHeight * 0.6;
+
+    //. 初期化を通知
+    var name = $('#name').text();
+    var msg = {
+      uuid: uuid,
+      room: '<%= room %>',
+      name: name,
+      timestamp: ( new Date() ).getTime(),
+      width: canvas.width,
+      height: canvas.height
+    };
+    socketio.json.emit( 'init_client', msg );
+  }
+}
+
+function pushStart(){
+  isPush = true;
+
+  stroke = {};
+  stroke.color = $('#select_color').val();
+  stroke.width = parseInt( $('#select_linewidth').val() );
+  stroke.xys = [];
+}
+
+function pushEnd(){
+  isPush = false;
+
+  if( stroke ){
+    //. 描画
+    var canvas = document.getElementById( "mycanvas" );
+    var ctx = canvas.getContext( "2d" );
+
+    var color = stroke.color;
+    if( color == 'transparent' ){
+      ctx.globalCompositeOperation = 'destination-out';
+    }else{
+      ctx.globalCompositeOperation = 'source-over';
+    }
+
+    //. 描画
+    ctx.beginPath();
+    ctx.lineWidth = stroke.width;
+    ctx.lineCap = 'round';
+    ctx.moveTo( stroke.xys[0][0], stroke.xys[0][1] );
+    for( var i = 1; i < stroke.xys.length; i ++ ){
+      ctx.lineTo( stroke.xys[i][0], stroke.xys[i][1] );
+      if( color != 'transparent' ){
+        ctx.strokeStyle = color;
+      }
+    }
+    ctx.stroke();
+
+    sendImage();
+
+    undos.push( stroke );
+    $('#undo_btn').prop( 'disabled', false );
+    stroke = null;
+    redos = [];
+    $('#redo_btn').prop( 'disabled', true );
+  }
+}
+
+function resetCanvas( no_reset_unredo ){
+  init();
+  resized();
+
+  if( !no_reset_unredo ){
+    undos = [];
+    redos = [];
+    backgroundcolor = null;
+
+    //. リセットを通知
+    sendImage();
+  }
+}
+
+function isAndroid(){
+  return ( navigator.userAgent.indexOf( 'Android' ) > 0 );
+}
+
+function save(){
+  var canvas = document.getElementById( 'mycanvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+  var ctx = canvas.getContext( '2d' );
+
+  //. 画像データ
+  var png = canvas.toDataURL( 'image/png' );
+  png = png.replace( /^.*,/, '' );
+
+  //. バイナリ変換
+  var bin = atob( png );
+  var buffer = new Uint8Array( bin.length );
+  for( var i = 0; i < bin.length; i ++ ){
+    buffer[i] = bin.charCodeAt( i );
+  }
+  var blob = new Blob( [buffer.buffer], {
+    type: 'image/png'
+  });
+
+  //. フォームにして送信
+  console.log( 'Sending data... : ' + blob.size );
+  var formData = new FormData();
+  formData.append( 'image', blob );    //. <form enctype='multipart/formdata'><input name='image' type='file'/> ...
+  formData.append( 'timestamp', ( new Date() ).getTime() );
+  formData.append( 'name', $('#name').text() );
+  $.ajax({
+    type: 'POST',
+    url: '/image',
+    data: formData,
+    contentType: false,
+    processData: false,
+    success: function( data, dataType ){
+      console.log( data );
+    },
+    error: function( jqXHR, textStatus, errorThrown ){
+      console.log( textStatus + ': ' + errorThrown );
+    }
+  });
+}
+
+function undo(){
+  if( undos && undos.length > 0 ){
+    var last_stroke = undos.pop();
+    if( undos.length == 0 ){
+      $('#undo_btn').prop( 'disabled', true );
+    }
+    redos.push( last_stroke );
+    $('#redo_btn').prop( 'disabled', false );
+
+    redrawCanvas();
+  }
+}
+
+function redo(){
+  if( redos && redos.length > 0 ){
+    var last_stroke = redos.pop();
+    if( redos.length == 0 ){
+      $('#redo_btn').prop( 'disabled', true );
+    }
+    undos.push( last_stroke );
+    $('#undo_btn').prop( 'disabled', false );
+
+    redrawCanvas();
+  }
+}
+
+function setBG(){
+  var color = $('#select_color').val();
+  if( color ){
+    if( color != 'transparent' ){
+      backgroundcolor = color;
+    }else{
+      backgroundcolor = null;
+    }
+    redrawCanvas();
+  }
+}
+
+function redrawCanvas(){
+  if( undos && undos.length >= 0 ){
+    resetCanvas( true );
+
+    if( backgroundcolor ){
+      var canvas = document.getElementById( 'mycanvas' );
+      if( !canvas || !canvas.getContext ){
+        return false;
+      }
+      var ctx = canvas.getContext( '2d' );
+
+      //. 全体をベタ塗り
+      ctx.beginPath();
+      ctx.fillStyle = backgroundcolor; //"rgb( 255, 255, 255 )";
+      ctx.fillRect( 0, 0, canvas.width, canvas.height );
+      ctx.stroke();
+    }
+
+    for( var i = 0; i < undos.length; i ++ ){
+      var stroke = undos[i];
+
+      for( var j = 1; j < stroke.xys.length; j ++ ){
+        var canvas = document.getElementById( 'mycanvas' );
+        if( !canvas || !canvas.getContext ){
+          return false;
+        }
+        var ctx = canvas.getContext( '2d' );
+
+        var color = stroke.color;
+        if( color == 'transparent' ){
+          ctx.globalCompositeOperation = 'destination-out';
+        }else{
+          ctx.globalCompositeOperation = 'source-over';
+        }
+
+        ctx.beginPath();
+        ctx.lineWidth = stroke.width;
+        ctx.lineCap = 'round';
+        ctx.moveTo( stroke.xys[j-1][0], stroke.xys[j-1][1] );
+        ctx.lineTo( stroke.xys[j][0], stroke.xys[j][1] );
+        if( color != 'transparent' ){
+          ctx.strokeStyle = color;
+        }
+        ctx.stroke();
+      }
+    }
+  }
+
+  sendImage();
+}
+
+function generateUUID(){
+  //. Cookie の値を調べて、有効ならその値で、空だった場合は生成する
+  var did = null;
+  cookies = document.cookie.split(";");
+  for( var i = 0; i < cookies.length; i ++ ){
+    var str = cookies[i].split("=");
+    var une = unescape( str[0] );
+    if( une == " deviceid" || une == "deviceid" ){
+      did = unescape( unescape( str[1] ) );
+    }
+  }
+
+  if( did == null ){
+    var s = 1000;
+    did = ( new Date().getTime().toString(16) ) + Math.floor( s * Math.random() ).toString(16);
+  }
+
+  var dt = ( new Date() );
+  var ts = dt.getTime();
+  ts += 1000 * 60 * 60 * 24 * 365 * 100; //. 100 years
+  dt.setTime( ts );
+  var value = ( "deviceid=" + did + '; expires=' + dt.toUTCString() + '; path=/' );
+  if( isMobileSafari() ){
+    $.ajax({
+      url: '/setcookie',
+      type: 'POST',
+      data: { value: value },
+      success: function( r ){
+        //console.log( 'success: ', r );
+      },
+      error: function( e0, e1, e2 ){
+        //console.log( 'error: ', e1, e2 );
+      }
+    });
+  }else{
+    document.cookie = ( value );
+    //console.log( 'value: ', value );
+  }
+
+  return did;
+}
+
+function isMobileSafari(){
+  return ( navigator.userAgent.indexOf( 'Safari' ) > 0 && navigator.userAgent.indexOf( 'Mobile' ) > 0 );
+}
+
+function sendImage(){
+  //. キャンバスを取得
+  var canvas = document.getElementById( 'mycanvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+
+  //. 画像データ
+  var png = canvas.toDataURL( 'image/png' );
+
+  //. コメント
+  var comment = $('#comment').val();
+  if( !comment ){ comment = ''; }
+
+  //. 画像を通知
+  var msg = {
+    uuid: uuid,
+    room: '<%= room %>',
+    comment: comment,
+    timestamp: ( new Date() ).getTime(),
+    image_src: png
+  };
+  socketio.json.emit( 'image_client', msg );
+}
+
+function drawTarget(){
+  //. ( mx, my ) にターゲットを描画
+  var canvas = document.getElementById( 'mycanvas' );
+  if( !canvas || !canvas.getContext ){
+    return false;
+  }
+  var ctx = canvas.getContext( '2d' );
+
+  var color = $('#select_color').val();
+  if( color == 'transparent' ){
+    ctx.globalCompositeOperation = 'destination-out';
+  }else{
+    ctx.globalCompositeOperation = 'source-over';
+  }
+
+  ctx.beginPath();
+  ctx.lineWidth = 1;
+  ctx.lineCap = 'round';
+  ctx.moveTo( mx, my - 15 );
+  ctx.lineTo( mx, my - 5 );
+  ctx.moveTo( mx, my + 15 );
+  ctx.lineTo( mx, my + 5 );
+  ctx.moveTo( mx - 15, my );
+  ctx.lineTo( mx - 5, my );
+  ctx.moveTo( mx + 15, my );
+  ctx.lineTo( mx + 5, my );
+  if( color != 'transparent' ){
+    ctx.strokeStyle = color;
+  }
+  ctx.stroke();
+}
+</script>
+
+</body>
+</html>
