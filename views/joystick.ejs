@@ -139,6 +139,7 @@ var my = 0;
 var score = 0;
 var loopcount = 0;
 var Zs = [];
+var Znum = 1;
 var ystep = 1;
 
 var obnizid = '<%= name %>';
@@ -218,7 +219,7 @@ if( obnizid ){
       }
 
       //. 敵追加
-      if( onGame && Zs.length == 0 ){
+      while( onGame && Zs.length < Znum ){
         var num = Math.floor( Math.random() * 9 ) + 1;
         var x = Math.floor( Math.random() * ( canvas_width - 40 ) ) + 20;
         var y = 40;
@@ -576,6 +577,8 @@ function drawTarget(){
         b = true;
 
         ystep = Math.floor( score / 200 ) + 1;
+        if( ystep > 5 ){ ystep = 5; }
+        Znum = Math.floor( ystep / 2 ) + 1;
       }
     }
     if( !b ){
