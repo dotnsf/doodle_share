@@ -124,6 +124,54 @@ html, body{
 </div>
 
 <script>
+function BufferLoader(context, urlList, callback) {
+  this.context = context;
+  this.urlList = urlList;
+  this.onload = callback;
+  this.bufferList = new Array();
+  this.loadCount = 0;
+}
+
+BufferLoader.prototype.loadBuffer = function(url, index) {
+  // Load buffer asynchronously
+  var request = new XMLHttpRequest();
+  request.open("GET", url, true);
+  request.responseType = "arraybuffer";
+
+  var loader = this;
+
+  request.onload = function() {
+    // Asynchronously decode the audio file data in request.response
+    loader.context.decodeAudioData(
+      request.response,
+      function(buffer) {
+        if (!buffer) {
+          alert('error decoding file data: ' + url);
+          return;
+        }
+        loader.bufferList[index] = buffer;
+        if (++loader.loadCount == loader.urlList.length)
+          loader.onload(loader.bufferList);
+      },
+      function(error) {
+        console.error('decodeAudioData error', error);
+      }
+    );
+  }
+
+  request.onerror = function() {
+    alert('BufferLoader: XHR error');
+  }
+
+  request.send();
+}
+
+BufferLoader.prototype.load = function() {
+  for (var i = 0; i < this.urlList.length; ++i)
+  this.loadBuffer(this.urlList[i], i);
+}
+
+
 var uuid = generateUUID();
 var socketio = null;
 
@@ -141,6 +189,14 @@ var loopcount = 0;
 var Zs = [];
 var Znum = 1;
 var ystep = 1;
+
+var audio_context = null;
+var audio_source_sample = null;
+var audio_source_come = null;
+var audio_source_end = null;
+var audio_source_hit = null;
+var audio_source_shoot = null;
+var audio_source_start = null;
 
 var obnizid = '<%= name %>';
 var obniz = null;
@@ -192,6 +248,14 @@ if( obnizid ){
             //score -= Zs[i].num * 10;
             //if( score < 0 ){ score = 0; }
             Zs.splice( i, 1 );
+
+            if( audio_source_end ){
+              //audio_source_end.connect( audio_context.destination );
+              try{
+                audio_source_end.start( 0 );
+              }catch( e ){
+              }
+            }
           }
         }
       }
@@ -203,6 +267,26 @@ if( obnizid ){
           onGame = true;
           score = 0;
           ystep = 1;
+
+          if( audio_context == null ){
+            //. Audio
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            audio_context = new AudioContext();
+            bufferLoader = new BufferLoader(
+              audio_context,
+              [ './sample.ogg', './come.ogg', './end.ogg', './hit.ogg', './shoot.ogg', './start.ogg' ],
+              finishedLoading
+            );
+            bufferLoader.load();
+          }
+
+          if( audio_source_start ){
+            //audio_source_start.connect( audio_context.destination );
+            try{
+              audio_source_start.start( 0 );
+            }catch( e ){
+            }
+          }
         }
         pushStart();
       }else if( isPush && !z ){
@@ -225,6 +309,14 @@ if( obnizid ){
         var x = Math.floor( Math.random() * ( canvas_width - 40 ) ) + 20;
         var y = 40;
         Zs.push( { x: x, y: y, num: num } );
+
+        if( audio_source_come ){
+          //audio_source_come.connect( audio_context.destination );
+          try{
+            audio_source_come.start( 0 );
+          }catch( e ){
+          }
+        }
       }
     }
   }
@@ -254,6 +346,32 @@ $(function(){
 
   init();
 });
+
+function finishedLoading( bufferList ){
+  audio_source_sample = audio_context.createBufferSource();
+  audio_source_come = audio_context.createBufferSource();
+  audio_source_end = audio_context.createBufferSource();
+  audio_source_hit = audio_context.createBufferSource();
+  audio_source_shoot = audio_context.createBufferSource();
+  audio_source_start = audio_context.createBufferSource();
+
+  audio_source_sample.buffer = bufferList[0];
+  audio_source_come.buffer = bufferList[1];
+  audio_source_end.buffer = bufferList[2];
+  audio_source_hit.buffer = bufferList[3];
+  audio_source_shoot.buffer = bufferList[4];
+  audio_source_start.buffer = bufferList[5];
+
+  audio_source_come.connect( audio_context.destination );
+  audio_source_end.connect( audio_context.destination );
+  audio_source_hit.connect( audio_context.destination );
+  audio_source_shoot.connect( audio_context.destination );
+  audio_source_start.connect( audio_context.destination );
+
+  console.log( '.ogg sample' );
+  audio_source_sample.connect( audio_context.destination );
+  audio_source_sample.start( 0 );
+}
 
 var canvas_width = 0;
 var canvas_height = 0;
@@ -580,6 +698,22 @@ function drawTarget(){
     if( !b ){
       if( score > 0 ){
         score -= 10;
+      }
+
+      if( audio_source_shoot ){
+        //audio_source_shoot.connect( audio_context.destination );
+        try{
+          audio_source_shoot.start( 0 );
+        }catch( e ){
+        }
+      }
+    }else{
+      if( audio_source_hit ){
+        //audio_source_hit.connect( audio_context.destination );
+        try{
+          audio_source_hit.start( 0 );
+        }catch( e ){
+        }
       }
     }
   }
