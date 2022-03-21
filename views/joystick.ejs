@@ -182,12 +182,13 @@ if( obnizid ){
       }
       //console.log( ` -> [${mx},${my} : ${isPush}]` );
 
-      if( Zs.length ){
+      if( onGame && Zs.length ){
         for( var i = 0; i < Zs.length; i ++ ){
           //. Zs[i] = { x: 100, y: 100, num: 8 };
           Zs[i].y += ystep;
           if( Zs[i].y >= canvas_height ){
             onGame = false;
+            ystep = 0;
             //score -= Zs[i].num * 10;
             //if( score < 0 ){ score = 0; }
             Zs.splice( i, 1 );
