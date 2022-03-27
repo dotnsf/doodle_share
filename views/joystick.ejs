@@ -227,7 +227,28 @@ function game_start(){
 var obnizid = '<%= name %>';
 var obniz = null;
 if( obnizid ){
-  obniz = new Obniz( obnizid );
+  //obniz = new Obniz.M5StickC( obnizid );  //. for Obniz.M5StickC
+  obniz = new Obniz( obnizid ); //. for Obniz Board
+  obniz.onerror = async ( ob, err ) => {
+    console.log( err );
+    /* Obniz.M5StickC を接続した場合のエラー
+    Error: Cannot use local_connect because the connection was timeouted
+    at obniz.js:2839:50
+    at new Promise (<anonymous>)
+    at Obniz.tryWsConnectOnceWait (obniz.js:2838:41)
+    at async obniz.js:3270:17
+    */
+    //obniz = new Obniz.M5StickC( obnizid );  //. これは実行されてない？？
+
+    /* Obniz.M5StickC を接続して new Obniz.M5StickC() を実行した場合、このエラーが数回表示された後にエラーが止まる（接続もする）
+    Error: Error: Error module=2 func=1 err0=0 returned=1
+    at M5StickC.error (obniz.js:3438:60)
+    at M5StickC._notifyToModule (obniz.js:3516:22)
+    at M5StickC.wsOnMessage (obniz.js:2794:26)
+    at obniz.js:2960:18
+    at CompatibleWebSocket.onmessage (obniz.js:19856:17)
+    */
+  }
   obniz.onconnect = async () => {
     //. Joystick
     var joystick = obniz.wired( "Grove_JoyStick", { scl:0, sda:1, vcc:2, gnd:3, grove: obniz.grove0 } );
