@@ -227,13 +227,36 @@ function game_start(){
 var obnizid = '<%= name %>';
 var obniz = null;
 if( obnizid ){
-  obniz = new Obniz( obnizid ); //. for Obniz Board
+  obniz = new Obniz.M5StickC( obnizid );  //. for Obniz.M5StickC
   obniz.onerror = async ( ob, err ) => {
     console.log( err );
+    /*
+    M5StickC 用の JOYSTICK HAT を接続すると、
+
+    Error: Error: Error module=2 func=1 err0=0 returned=1
+    at M5StickC.error (obniz.js:3438:60)
+    at M5StickC._notifyToModule (obniz.js:3516:22)
+    at M5StickC.wsOnMessage (obniz.js:2794:26)
+    at obniz.js:2960:18
+    at CompatibleWebSocket.onmessage (obniz.js:19856:17)
+
+    が４回繰り返された（ここまでは正常時も出るのでOK）後にこのエラー
+
+    Error: i2c0: reading error. Communication Timeout. Maybe, target is not connected.
+    at M5StickC.error (obniz.js:3438:60)
+    at PeripheralI2C.<anonymous> (obniz.js:16168:28)
+    at PeripheralI2C.emit (obniz.js:75265:33)
+    at PeripheralI2C.notifyFromObniz (obniz.js:5231:22)
+    at M5StickC._notifyToModule (obniz.js:2286:37)
+    at M5StickC._notifyToModule (obniz.js:3503:15)
+    at M5StickC.wsOnMessage (obniz.js:2794:26)
+    at obniz.js:2960:18
+    at CompatibleWebSocket.onmessage (obniz.js:19856:17)
+    */
   }
   obniz.onconnect = async () => {
     //. Joystick
-    var joystick = obniz.wired( "Grove_JoyStick", { scl:0, sda:1, vcc:2, gnd:3, grove: obniz.grove0 } );
+    var joystick = obniz.wired( "Grove_JoyStick", { grove: obniz.grove0 } );
     while( true ){
       var x = await joystick.getXWait()
       var y = await joystick.getYWait()
