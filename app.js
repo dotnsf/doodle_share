@@ -125,6 +125,15 @@ app.get( '/joystickc', function( req, res ){
   res.render( 'joystick_m5stickc', { name: name, room: room, save: save } );
 });
 
+app.get( '/joystickc_j', function( req, res ){
+  var name = req.query.name;
+  if( !name ){ name = '' + ( new Date() ).getTime(); }
+  var room = req.query.room;
+  if( !room ){ room = settings.defaultroom; }
+  var save = ( db ? true : false );
+  res.render( 'joystick_m5stickc_j', { name: name, room: room, save: save } );
+});
+
 app.get( '/view', function( req, res ){
   var room = req.query.room;
   if( !room ){ room = settings.defaultroom; }
